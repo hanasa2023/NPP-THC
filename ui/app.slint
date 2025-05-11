@@ -1,0 +1,1147 @@
+import { Button, LineEdit, VerticalBox, HorizontalBox, GroupBox, TabWidget, ScrollView, Slider, GridBox  } from "std-widgets.slint";
+import { InputParameters, MyResult, FWParameters, HESParameters, RHXParameters } from "./models/paramters.slint";
+import { ParameterInput, FWPreview, HESPreview, RHXPreview } from "./components/index.slint";
+import { AboutDialog } from "components/index.slint";
+
+export component App inherits Window {
+    title: "核电厂热力计算程序";
+    min-width: 800px;
+    min-height: 600px;
+
+    callback calculate();
+    callback load-defaults();
+    callback save-parameters();
+    callback load-parameters();
+    callback select-output-directory();
+    callback open-file-dialog(string);
+
+    // 保存目录
+    in-out property <string> output-directory: "";
+    in-out property <string> loaded-file-path: "";
+
+    in-out property <InputParameters> input-parameters;
+    in-out property <bool> show-about-dialog: false;
+
+    in property <MyResult> results;
+
+    in property <string> status: "就绪";
+
+    menu-bar := MenuBar {
+        Menu {
+            title: "文件";
+            MenuItem {
+                title: "加载参数...";
+                activated => {
+                    root.open-file-dialog("load");
+                }
+            }
+
+            MenuItem {
+                title: "保存参数...";
+                activated => {
+                    if (root.output-directory == "") {
+                        root.select-output-directory();
+                    } else {
+                        root.save-parameters();
+                    }
+                }
+            }
+
+            MenuItem {
+                title: "选择输出目录...";
+                activated => {
+                    root.select-output-directory();
+                }
+            }
+        }
+
+        Menu {
+            title: "计算";
+            MenuItem {
+                title: "加载默认值";
+                activated => {
+                    root.load-defaults();
+                }
+            }
+
+            MenuItem {
+                title: "开始计算";
+                activated => {
+                    if (root.output-directory == "") {
+                        root.select-output-directory();
+                    } else {
+                        root.calculate();
+                    }
+                }
+            }
+        }
+
+        // 可以根据需要添加更多菜单
+        Menu {
+            title: "帮助";
+            MenuItem {
+                title: "关于";
+                activated => {
+                    // 实现关于对话框
+                    root.show-about-dialog = true;
+                }
+            }
+        }
+    }
+
+    content := VerticalLayout {
+        TabWidget {
+            Tab {
+                title: "输入参数";
+                ScrollView {
+                    VerticalBox {
+                        GroupBox {
+                            title: "基本参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "核电厂输出电功率(MW)";
+                                    value: input-parameters.n-e;
+                                }
+
+                                ParameterInput {
+                                    label: "一回路能量利用系数%";
+                                    value: input-parameters.n-1;
+                                }
+
+                                ParameterInput {
+                                    label: "蒸汽发生器出口蒸汽干度%";
+                                    value: input-parameters.x-fh;
+                                }
+
+                                ParameterInput {
+                                    label: "蒸汽发生器排污率%";
+                                    value: input-parameters.zeta-d;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "效率参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "高压缸内效率%";
+                                    value: input-parameters.n-hi;
+                                }
+
+                                ParameterInput {
+                                    label: "低压缸内效率%";
+                                    value: input-parameters.n-li;
+                                }
+
+                                ParameterInput {
+                                    label: "汽轮机组机械效率%";
+                                    value: input-parameters.n-m;
+                                }
+
+                                ParameterInput {
+                                    label: "发电机效率%";
+                                    value: input-parameters.n-ge;
+                                }
+
+                                ParameterInput {
+                                    label: "加热器效率%";
+                                    value: input-parameters.n-h;
+                                }
+
+                                ParameterInput {
+                                    label: "给水泵效率%";
+                                    value: input-parameters.n-fwpp;
+                                }
+
+                                ParameterInput {
+                                    label: "估计核电站效率%";
+                                    value: input-parameters.n-eNPP;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "压力参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "反应堆冷却剂压力(MPa)";
+                                    value: input-parameters.P-c;
+                                }
+
+                                ParameterInput {
+                                    label: "蒸汽发生器蒸汽压力(MPa)";
+                                    value: input-parameters.P-s;
+                                }
+
+                                ParameterInput {
+                                    label: "新蒸汽压损%";
+                                    value: input-parameters.dP-fh;
+                                }
+
+                                ParameterInput {
+                                    label: "再热蒸汽压损%";
+                                    value: input-parameters.dP-rh;
+                                }
+
+                                ParameterInput {
+                                    label: "回热抽汽压损%";
+                                    value: input-parameters.dP-ej;
+                                }
+
+                                ParameterInput {
+                                    label: "低压缸排汽损%";
+                                    value: input-parameters.dP-cd;
+                                }
+
+                                ParameterInput {
+                                    label: "流动损失%";
+                                    value: input-parameters.dP-f;
+                                }
+
+                                ParameterInput {
+                                    label: "高压缸排汽压力比%";
+                                    value: input-parameters.dP-hz;
+                                }
+
+                                ParameterInput {
+                                    label: "给水泵出口压力系数";
+                                    value: input-parameters.dP-fwpo;
+                                }
+
+                                ParameterInput {
+                                    label: "凝水泵出口压力系数";
+                                    value: input-parameters.dP-cwp;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "温度参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "出口冷却剂过冷度(°C)";
+                                    value: input-parameters.dT-sub;
+                                }
+
+                                ParameterInput {
+                                    label: "冷却剂温升(°C)";
+                                    value: input-parameters.dT-c;
+                                }
+
+                                ParameterInput {
+                                    label: "冷却水进口温度(°C)";
+                                    value: input-parameters.T-sw1;
+                                }
+
+                                ParameterInput {
+                                    label: "冷却水温升(°C)";
+                                    value: input-parameters.dT-sw;
+                                }
+
+                                ParameterInput {
+                                    label: "冷凝器传热端差(°C)";
+                                    value: input-parameters.dT;
+                                }
+
+                                ParameterInput {
+                                    label: "再热蒸汽温度差(°C)";
+                                    value: input-parameters.T-rh2z;
+                                }
+
+                                ParameterInput {
+                                    label: "给水温度系数%";
+                                    value: input-parameters.dT-fw;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "系统配置";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "回热级数";
+                                    value: input-parameters.Z;
+                                }
+
+                                ParameterInput {
+                                    label: "低压给水加热器级数";
+                                    value: input-parameters.Z-l;
+                                }
+
+                                ParameterInput {
+                                    label: "高压给水加热器级数";
+                                    value: input-parameters.Z-h;
+                                }
+
+                                ParameterInput {
+                                    label: "加热器出口端差(HP)(°C)";
+                                    value: input-parameters.theta-hu;
+                                }
+
+                                ParameterInput {
+                                    label: "加热器出口端差(LP)(°C)";
+                                    value: input-parameters.theta-lu;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "给水泵参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "给水泵效率%";
+                                    value: input-parameters.n-fwpp;
+                                }
+
+                                ParameterInput {
+                                    label: "给水泵汽轮机内效率%";
+                                    value: input-parameters.n-fwpti;
+                                }
+
+                                ParameterInput {
+                                    label: "给水泵汽轮机机械效率%";
+                                    value: input-parameters.n-fwptm;
+                                }
+
+                                ParameterInput {
+                                    label: "给水泵汽轮机减速器效率%";
+                                    value: input-parameters.n-fwptg;
+                                }
+
+                                ParameterInput {
+                                    label: "假设冷凝器凝水量(kg/s)";
+                                    value: input-parameters.g-cd;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Tab {
+                title: "计算结果";
+                ScrollView {
+                    VerticalBox {
+                        GroupBox {
+                            title: "附表三";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "1.核电厂效率η-eNPP";
+                                    value: results.result1[0].eta-enpp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "2.反应堆热功率Q-R(MW)";
+                                    value: results.result1[0].q-r;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "3.蒸汽发生器总蒸汽产量Ds(kg/s)";
+                                    value: results.result1[0].d-s;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "4.汽轮机高压缸耗气量G-shp(kg/s)";
+                                    value: results.result1[0].g-shp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "5.汽轮机低压缸耗气量G-slp(kg/s)";
+                                    value: results.result1[0].g-slp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "6.第一级再热器耗气量G-srh1(kg/s)";
+                                    value: results.result1[0].g-srh1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "7.第二级再热器耗气量G-srh2(kg/s)";
+                                    value: results.result1[0].g-srh2;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "8.除氧器耗气量G-sdea(kg/s)";
+                                    value: results.result1[0].g-sdea;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "9.给水泵汽轮机耗气量G-sfwp(kg/s)";
+                                    value: results.result1[0].g-sfwp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "10.给水泵给水量G-fw(kg/s)";
+                                    value: results.result1[0].g-fw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "11.给水泵扬程H-fwp(m)";
+                                    value: results.result1[0].h-fwp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "12.1.第七级抽汽量G-hes7(kg/s)";
+                                    value: results.result1[0].g-hes7;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "12.2.第六级抽汽量G-hes6(kg/s)";
+                                    value: results.result1[0].g-hes6;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.1.第四级抽汽量G-les4(kg/s)";
+                                    value: results.result1[0].g-les4;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.2.第三级抽汽量G-les3(kg/s)";
+                                    value: results.result1[0].g-les3;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.3.第二级抽汽量G-les2(kg/s)";
+                                    value: results.result1[0].g-les2;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.4.第一级抽汽量G-les1(kg/s)";
+                                    value: results.result1[0].g-les1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "14.凝结水量G-cd(kg/s)";
+                                    value: results.result1[0].g-cd;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.汽水分离器疏水量G-uw(kg/s)";
+                                    value: results.result1[0].g-uw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "16.一级再热器加热蒸汽量G-zc1(kg/s)";
+                                    value: results.result1[0].g-zc1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.二级再热器加热蒸汽量G-zc2(kg/s)";
+                                    value: results.result1[0].g-zc2;
+                                    enabled: false;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "附表一";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "1.核电厂输出功率N-e(MW)";
+                                    value: results.result2.ne;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "2.一回路能量利用系数η-1";
+                                    value: results.result2.eta-1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "3.蒸汽发生器出口蒸汽干度X-fh";
+                                    value: results.result2.x-fh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "4.蒸汽发生器排污率ξ-d";
+                                    value: results.result2.zeta-d;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "5.高压缸内效率η-hi";
+                                    value: results.result2.eta-hi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "6.低压缸内效率η-li";
+                                    value: results.result2.eta-li;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "7.汽轮机组机械效率η-m";
+                                    value: results.result2.eta-m;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "8.发电机效率η-ge";
+                                    value: results.result2.eta-ge;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "9.新蒸汽压损Δp-fh";
+                                    value: results.result2.dp-fh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "10.再热蒸汽压损Δp-rh";
+                                    value: results.result2.dp-rh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "11.回热蒸汽压损Δp-ej";
+                                    value: results.result2.dp-ej;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "12.低压缸排气压损Δp-cd";
+                                    value: results.result2.dp-cd;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.高压给水加热器出口端差θ-hu(°C)";
+                                    value: results.result2.theta-hu;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "14.低压给水加热器出口端差θ-lu(°C)";
+                                    value: results.result2.theta-lu;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.加热器效率η-h";
+                                    value: results.result2.eta-h;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "16.给水泵效率η-fwpp";
+                                    value: results.result2.eta-fwpp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.给水泵汽轮机内效率η-fwpti";
+                                    value: results.result2.eta-fwpti;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "18.给水泵汽轮机机械效率η-fwptm";
+                                    value: results.result2.eta-fwptm;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "19.给水泵汽轮机减速器效率η-fwptg";
+                                    value: results.result2.eta-fwptg;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "20.循环冷却水进口温度T-sw1(°C)";
+                                    value: results.result2.t-sw1;
+                                    enabled: false;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "附表二";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "1.反应堆冷却剂系统运行压力p-c(MPa)";
+                                    value: results.result2.p-c;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "2.冷却剂压力对应的饱和温度T-cs(°C)";
+                                    value: results.result2.t-cs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "3.反应堆出口冷却剂过冷度ΔT-sub(°C)";
+                                    value: results.result2.dt-sub;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "4.反应堆出口冷却剂温度T-co(°C)";
+                                    value: results.result2.t-co;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "5.反应堆进出口冷却剂温升ΔT-c(°C)";
+                                    value: results.result2.dt-c;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "6.反应堆进口冷却剂温度T-ci(°C)";
+                                    value: results.result2.t-ci;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "7.蒸汽发生器饱和蒸汽压力p-s(MPa)";
+                                    value: results.result2.p-s;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "8.蒸汽发生器饱和蒸汽温度T-fh(°C)";
+                                    value: results.result2.t-fh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "9.一、二次侧对数平均温差ΔT-m(°C)";
+                                    value: results.result2.dt-m;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "10.冷凝器中循环冷却水温升ΔT-sw(°C)";
+                                    value: results.result2.dt-sw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "11.冷凝器传热端差δT(°C)";
+                                    value: results.result2.dt;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "12.冷凝器凝结水饱和温度T-cd(°C)";
+                                    value: results.result2.t-cd;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "13.冷凝器的运行压力p-cd(MPa)";
+                                    value: results.result2.p-cd;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "14.高压缸进口的蒸汽压力p-hi(MPa)";
+                                    value: results.result2.p-hi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.高压缸进口蒸汽干度X-hi";
+                                    value: results.result2.x-hi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.1.蒸汽发生器出口蒸汽比焓h-fh(kJ/kg)";
+                                    value: results.result2.h-fh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.2.蒸汽发生器出口蒸汽比熵s-fh";
+                                    value: results.result2.s-fh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "15.3.高压缸进口蒸汽比熵s-hi";
+                                    value: results.result2.s-hi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "16.高压缸排气压力p-hz(MPa)";
+                                    value: results.result2.p-hz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.高压缸排气干度X-hz";
+                                    value: results.result2.x-hz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.1.高压缸进口蒸汽比焓h-hi(kJ/kg)";
+                                    value: results.result2.h-hi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.2.高压缸出口理想比焓h-hzs(kJ/kg)";
+                                    value: results.result2.h-hzs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "17.3.高压缸出口蒸汽比焓h-hz(kJ/kg)";
+                                    value: results.result2.h-hz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "18.汽水分离器进口蒸汽压力p-spi(MPa)";
+                                    value: results.result2.p-spi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "19.汽水分离器进口蒸汽干度X-spi";
+                                    value: results.result2.x-spi;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "19.1.汽水分离器出口疏水压力p-uw(MPa)";
+                                    value: results.result2.p-uw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "19.2.汽水分离器出口疏水比焓h-uw(kJ/kg)";
+                                    value: results.result2.h-uw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "20.再热蒸汽进口压力p-rh1i(MPa)";
+                                    value: results.result2.p-rh1i;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "21.再热蒸汽进口干度X-rh1i";
+                                    value: results.result2.x-rh1i;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "21.1.一级再热器进口蒸汽比焓h-rh1i(kJ/kg)";
+                                    value: results.result2.h-rh1i;
+                                    enabled: false;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "附表二 (Result2) - 续";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "22.加热蒸汽进口压力p-rh1hs(MPa)";
+                                    value: results.result2.p-rh1hs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "23.加热蒸汽进口干度X-rh1hs";
+                                    value: results.result2.x-rh1hs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "24.再热蒸汽进口压力p-rh2i(MPa)";
+                                    value: results.result2.p-rh2i;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "25.再热蒸汽进口温度T-rh2i(°C)";
+                                    value: results.result2.t-rh2i;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "26.再热蒸汽出口压力p-rh2z(MPa)";
+                                    value: results.result2.p-rh2z;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "27.再热蒸汽出口温度T-rh2z(°C)";
+                                    value: results.result2.t-rh2z;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "27.1.二级再热器出口比焓h-rh2z(kJ/kg)";
+                                    value: results.result2.h-rh2z;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "27.2.每级再热器平均焓升Δh-rh(kJ/kg)";
+                                    value: results.result2.dh-rh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "27.3.一级再热器出口蒸汽比焓h-rh1z(kJ/kg)";
+                                    value: results.result2.h-rh1z;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "27.4.二级再热器进口蒸汽比焓h-rh2i(kJ/kg)";
+                                    value: results.result2.h-rh2i;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "28.加热蒸汽进口压力p-rh2hs(MPa)";
+                                    value: results.result2.p-rh2hs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "29.加热蒸汽进口干度X-rh2hs";
+                                    value: results.result2.x-rh2hs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "30.进口蒸汽压力p-li(MPa)";
+                                    value: results.result2.p-li;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "31.进口蒸汽温度T-li(°C)";
+                                    value: results.result2.t-li;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "32.排汽压力p-lz(MPa)";
+                                    value: results.result2.p-lz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "33.排汽干度X-lz";
+                                    value: results.result2.x-lz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "33.1.低压缸进口蒸汽比熵s-li";
+                                    value: results.result2.s-li;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "33.2.低压缸进口蒸汽比焓h-li(kJ/kg)";
+                                    value: results.result2.h-li;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "33.3.低压缸出口理想比焓h-lzs(kJ/kg)";
+                                    value: results.result2.h-lzs;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "33.4.低压缸出口蒸汽比焓h-lz(kJ/kg)";
+                                    value: results.result2.h-lz;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "34.回热级数Z";
+                                    value: results.result2.z;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "35.低压给水加热器级数Z-l";
+                                    value: results.result2.z-l;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "36.高压给水加热器级数Z-h";
+                                    value: results.result2.z-h;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.第一次给水回热分配Δh-fw";
+                                    value: results.result2.dh-fw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.1.蒸汽发生器运行压力饱和水比焓h-s(kJ/kg)";
+                                    value: results.result2.h-s;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.2.冷凝器出口凝结水比焓h-cd(kJ/kg)";
+                                    value: results.result2.h-cd;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.3.每级加热器理论给水焓升Δh-fwop(kJ/kg)";
+                                    value: results.result2.dh-fwop;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.4.最佳给水比焓h-fwop(kJ/kg)";
+                                    value: results.result2.h-fwop;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.5.最佳给水温度T-fwop(°C)";
+                                    value: results.result2.t-fwop;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.6.实际给水温度T-fw(°C)";
+                                    value: results.result2.t-fw;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "37.7.实际给水比焓h-fw(kJ/kg)";
+                                    value: results.result2.h-fw;
+                                    enabled: false;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "给水及除氧器参数";
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "38.高压加热器给水焓升Δh-fwh(kJ/kg)";
+                                    value: results.result2.dh-fwh;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "38.1.除氧器运行压力p-dea(MPa)";
+                                    value: results.result2.p-dea;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "38.2.除氧器出口饱和水比焓h-deao(kJ/kg)";
+                                    value: results.result2.h-deao;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "39.除氧器及低压加热器给水焓升Δh-fwl(kJ/kg)";
+                                    value: results.result2.dh-fwl;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "39.1.凝水泵出口给水压力p-cwp(MPa)";
+                                    value: results.result2.p-cwp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "39.2.凝水泵出口给水比焓h-cwp(kJ/kg)";
+                                    value: results.result2.h-cwp;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "39.3.凝水泵出口至除氧器出口阻力压降Δp-cws(MPa)";
+                                    value: results.result2.dp-cws;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "39.4.每级低压加热器及除氧器阻力压降Δp-fi(MPa)";
+                                    value: results.result2.dp-fi;
+                                    enabled: false;
+                                }
+
+                                for fwp[index] in results.result2.lfwx: FWPreview {
+                                    fwp: fwp;
+                                    level: index + 1;
+                                }
+
+                                ParameterInput {
+                                    label: "41.进口给水比焓h-deai(kJ/kg)";
+                                    value: results.result2.h-deai;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "42.出口给水比焓h-deao(kJ/kg)";
+                                    value: results.result2.h-deao1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "43.出口给水温度T-dea(°C)";
+                                    value: results.result2.t-dea;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "44.运行压力p-dea(MPa)";
+                                    value: results.result2.p-dea1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "44.1.给水泵出口压力p-fwpo(MPa)";
+                                    value: results.result2.p-fwpo;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "44.2.给水泵出口流体比焓h-fwpo(kJ/kg)";
+                                    value: results.result2.h-fwpo;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "44.3.蒸汽发生器进口给水压力p-fwi(MPa)";
+                                    value: results.result2.p-fwi;
+                                    enabled: false;
+                                }
+                            }
+                        }
+
+                        for fwx[index] in results.result2.hfwx: FWPreview {
+                            fwp: fwx;
+                            level: index + 6;
+                        }
+
+                        GroupBox {
+                            title: "46.高压缸抽气";
+
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "46.1.高压缸进口蒸汽比熵s-hi";
+                                    value: results.result2.s-hi1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "46.2.高压缸进口蒸汽比焓h-hi(kJ/kg)";
+                                    value: results.result2.h-hi1;
+                                    enabled: false;
+                                }
+
+                                for hes[index] in results.result2.hhes: HESPreview {
+                                    hes: hes;
+                                    level: index + 1;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "47.低压缸抽气";
+
+                            VerticalBox {
+                                ParameterInput {
+                                    label: "47.1.低压缸进口蒸汽比熵s-li";
+                                    value: results.result2.s-li1;
+                                    enabled: false;
+                                }
+
+                                ParameterInput {
+                                    label: "47.2.低压缸进口蒸汽比焓h-li(kJ/kg)";
+                                    value: results.result2.h-li1;
+                                    enabled: false;
+                                }
+
+                                for lhes[index] in results.result2.lhes: HESPreview {
+                                    hes: lhes;
+                                    level: index + 1;
+                                }
+                            }
+                        }
+
+                        GroupBox {
+                            title: "48.再热器抽气";
+                            VerticalBox {
+                                for rhx[index] in results.result2.rhx: RHXPreview {
+                                    rhx: rhx;
+                                    level: index + 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 状态显示
+        Rectangle {
+            height: 30px;
+            Text {
+                x: 10px;
+                text: "状态: " + root.status;
+                vertical-alignment: center;
+            }
+
+            // 可以在右侧添加输出目录和加载文件路径的显示
+            Text {
+                x: parent.width - self.width - 10px;
+                text: root.loaded-file-path != "" ? "已加载: " + root.loaded-file-path : (root.output-directory != "" ? "输出目录: " + root.output-directory : "");
+                vertical-alignment: center;
+                horizontal-alignment: right;
+            }
+        }
+    }
+
+    about-dialog := AboutDialog {
+        visible: root.show-about-dialog;
+        close-requested => {
+            root.show-about-dialog = false;
+        }
+    }
+}

@@ -1,0 +1,22 @@
+import { HorizontalBox, LineEdit } from "std-widgets.slint";
+
+export component ParameterInput {
+    in-out property <string> label;
+    in-out property <string> value;
+    in-out property <bool> enabled: true;
+    in-out property <string> placeholder-text: "";
+    HorizontalBox {
+        Text {
+            text: root.label;
+            vertical-alignment: center;
+            min-width: 200px;
+        }
+
+        LineEdit {
+            enabled: root.enabled;
+            text <=> root.value;
+            placeholder-text: root.placeholder-text;
+            min-width: 150px;
+        }
+    }
+}

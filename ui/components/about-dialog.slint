@@ -1,0 +1,54 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+
+export component AboutDialog inherits Dialog {
+    width: 400px;
+    height: 300px;
+    title: "关于";
+    in-out property <bool> vis: false;
+    callback close-requested();
+
+    Rectangle {
+        background: #000000;
+        border-radius: 4px;
+        drop-shadow-color: #00000080;
+        drop-shadow-blur: 10px;
+        drop-shadow-offset-x: 0px;
+        drop-shadow-offset-y: 3px;
+        VerticalBox {
+            alignment: center;
+            padding: 16px;
+            spacing: 16px;
+            Text {
+                font-size: 18px;
+                font-weight: 700;
+                text: "核电厂热力计算程序";
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "版本: 1.0";
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "本程序用于核电厂热力系统参数计算";
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "© 2025 核工程设计课程设计";
+                horizontal-alignment: center;
+            }
+
+            HorizontalLayout {
+                alignment: center;
+                Button {
+                    text: "确定";
+                    clicked => {
+                        root.close-requested();
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,43 @@
+import { GroupBox, VerticalBox } from "std-widgets.slint";
+import { ParameterInput } from "./parameter-input.slint";
+import { RHXParameters } from "../models/paramters.slint";
+
+export component RHXPreview {
+    in property <RHXParameters> rhx;
+    in property <int> level;
+
+    GroupBox {
+        title: "\{level}级再热器参数";
+        VerticalBox {
+            ParameterInput {
+                label: "\{level}级再热器加热蒸汽进口压力p-rhx(MPa)";
+                value: rhx.p-rhx;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "\{level}级再热器加热蒸汽进口干度X-rhx";
+                value: rhx.x-rhx;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "\{level}级再热器加热蒸汽进口温度T-rhx(°C)";
+                value: rhx.t-rhx;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "\{level}级再热器加热蒸汽进口比焓h-rhx(kJ/kg)";
+                value: rhx.h-rhx;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "\{level}级再热器疏水比焓h-zsx(kJ/kg)";
+                value: rhx.h-zsx;
+                enabled: false;
+            }
+        }
+    }
+}

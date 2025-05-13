@@ -1,10 +1,10 @@
-import { Button, LineEdit, VerticalBox, HorizontalBox, GroupBox, TabWidget, ScrollView, Slider, GridBox  } from "std-widgets.slint";
-import { InputParameters, MyResult, FWParameters, HESParameters, RHXParameters } from "./models/paramters.slint";
-import { ParameterInput, FWPreview, HESPreview, RHXPreview } from "./components/index.slint";
-import { AboutDialog } from "components/index.slint";
+import {TextEdit, Button, LineEdit, VerticalBox, HorizontalBox, GroupBox, TabWidget, ScrollView, Slider, GridBox  } from "std-widgets.slint";
+import { InputParameters, MyResult, FWParameters, HESParameters, RHXParameters } from "./models/parameters.slint";
+import { AboutDialog, Table3, NumericParameterInput, ParameterInput, FWPreview, HESPreview, RHXPreview } from "./components/index.slint";
 
 export component App inherits Window {
     title: "核电厂热力计算程序";
+    icon: @image-url("./assets/logo.jpg");
     min-width: 800px;
     min-height: 600px;
 
@@ -20,9 +20,11 @@ export component App inherits Window {
     in-out property <string> loaded-file-path: "";
 
     in-out property <InputParameters> input-parameters;
+
     in-out property <bool> show-about-dialog: false;
 
     in property <MyResult> results;
+    in property <string> calc_code: "未计算，无法生成计算代码！";
 
     in property <string> status: "就绪";
 
@@ -98,24 +100,41 @@ export component App inherits Window {
                         GroupBox {
                             title: "基本参数";
                             VerticalBox {
-                                ParameterInput {
+
+                                NumericParameterInput {
                                     label: "核电厂输出电功率(MW)";
                                     value: input-parameters.n-e;
+                                    placeholder: "1000";
+                                    changed value => {
+                                        input-parameters.n-e = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "一回路能量利用系数%";
                                     value: input-parameters.n-1;
+                                    placeholder: "99 ~ 100";
+                                    changed value => {
+                                        input-parameters.n-1 = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "蒸汽发生器出口蒸汽干度%";
                                     value: input-parameters.x-fh;
+                                    placeholder: "99.75";
+                                    changed value => {
+                                        input-parameters.x-fh = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "蒸汽发生器排污率%";
                                     value: input-parameters.zeta-d;
+                                    placeholder: "1.05";
+                                    changed value => {
+                                        input-parameters.zeta-d = self.value;
+                                    }
                                 }
                             }
                         }
@@ -123,39 +142,67 @@ export component App inherits Window {
                         GroupBox {
                             title: "效率参数";
                             VerticalBox {
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "高压缸内效率%";
                                     value: input-parameters.n-hi;
+                                    placeholder: "82.07";
+                                    changed value => {
+                                        input-parameters.n-hi = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "低压缸内效率%";
                                     value: input-parameters.n-li;
+                                    placeholder: "83.59";
+                                    changed value => {
+                                        input-parameters.n-li = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "汽轮机组机械效率%";
                                     value: input-parameters.n-m;
+                                    placeholder: "98 ~ 99";
+                                    changed value => {
+                                        input-parameters.n-m = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "发电机效率%";
                                     value: input-parameters.n-ge;
+                                    placeholder: "98 ~ 99";
+                                    changed value => {
+                                        input-parameters.n-ge = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "加热器效率%";
                                     value: input-parameters.n-h;
+                                    placeholder: "97 ~ 99";
+                                    changed value => {
+                                        input-parameters.n-h = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵效率%";
                                     value: input-parameters.n-fwpp;
+                                    placeholder: "58";
+                                    changed value => {
+                                        input-parameters.n-fwpp = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "估计核电站效率%";
                                     value: input-parameters.n-eNPP;
+                                    placeholder: "0 ~ 100";
+                                    changed value => {
+                                        input-parameters.n-eNPP = self.value;
+                                    }
                                 }
                             }
                         }
@@ -163,54 +210,94 @@ export component App inherits Window {
                         GroupBox {
                             title: "压力参数";
                             VerticalBox {
-                                ParameterInput {
-                                    label: "反应堆冷却剂压力(MPa)";
+                                NumericParameterInput {
+                                    label: "反应堆冷却剂系统运行压力(MPa)";
                                     value: input-parameters.P-c;
+                                    placeholder: "15 ~ 16";
+                                    changed value => {
+                                        input-parameters.P-c = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "蒸汽发生器蒸汽压力(MPa)";
                                     value: input-parameters.P-s;
+                                    placeholder: "5.0 ~ 7.0";
+                                    changed value => {
+                                        input-parameters.P-s = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "新蒸汽压损%";
                                     value: input-parameters.dP-fh;
+                                    placeholder: "3 ~ 7";
+                                    changed value => {
+                                        input-parameters.dP-fh = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "再热蒸汽压损%";
                                     value: input-parameters.dP-rh;
+                                    placeholder: "0 ~ 10";
+                                    changed value => {
+                                        input-parameters.dP-rh = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "回热抽汽压损%";
                                     value: input-parameters.dP-ej;
+                                    placeholder: "3 ~ 5";
+                                    changed value => {
+                                        input-parameters.dP-ej = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "低压缸排汽损%";
                                     value: input-parameters.dP-cd;
+                                    placeholder: "5";
+                                    changed value => {
+                                        input-parameters.dP-cd = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "流动损失%";
                                     value: input-parameters.dP-f;
+                                    placeholder: "0 ~ 3";
+                                    changed value => {
+                                        input-parameters.dP-f = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "高压缸排汽压力比%";
                                     value: input-parameters.dP-hz;
+                                    placeholder: "12 ~ 14";
+                                    changed value => {
+                                        input-parameters.dP-hz = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵出口压力系数";
                                     value: input-parameters.dP-fwpo;
+                                    placeholder: "1.15 ~ 1.25";
+                                    changed value => {
+                                        input-parameters.dP-fwpo = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "凝水泵出口压力系数";
                                     value: input-parameters.dP-cwp;
+                                    placeholder: "3 ~ 3.2";
+                                    changed value => {
+                                        input-parameters.dP-cwp = self.value;
+                                    }
                                 }
                             }
                         }
@@ -218,39 +305,67 @@ export component App inherits Window {
                         GroupBox {
                             title: "温度参数";
                             VerticalBox {
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "出口冷却剂过冷度(°C)";
                                     value: input-parameters.dT-sub;
+                                    placeholder: "15 ~ 20";
+                                    changed value => {
+                                        input-parameters.dT-sub = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "冷却剂温升(°C)";
                                     value: input-parameters.dT-c;
+                                    placeholder: "30 ~ 40";
+                                    changed value => {
+                                        input-parameters.dT-c = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "冷却水进口温度(°C)";
                                     value: input-parameters.T-sw1;
+                                    placeholder: "24";
+                                    changed value => {
+                                        input-parameters.T-sw1 = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
-                                    label: "冷却水温升(°C)";
+                                NumericParameterInput {
+                                    label: "冷凝器中循环冷却水温升(°C)";
                                     value: input-parameters.dT-sw;
+                                    placeholder: "6 ~ 8";
+                                    changed value => {
+                                        input-parameters.dT-sw = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "冷凝器传热端差(°C)";
                                     value: input-parameters.dT;
+                                    placeholder: "3 ~ 10";
+                                    changed value => {
+                                        input-parameters.dT = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "再热蒸汽温度差(°C)";
                                     value: input-parameters.T-rh2z;
+                                    placeholder: "13 ~ 15";
+                                    changed value => {
+                                        input-parameters.T-rh2z = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水温度系数%";
                                     value: input-parameters.dT-fw;
+                                    placeholder: "85 ~ 90";
+                                    changed value => {
+                                        input-parameters.dT-fw = self.value;
+                                    }
                                 }
                             }
                         }
@@ -258,29 +373,49 @@ export component App inherits Window {
                         GroupBox {
                             title: "系统配置";
                             VerticalBox {
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "回热级数";
                                     value: input-parameters.Z;
+                                    placeholder: "7";
+                                    changed value => {
+                                        input-parameters.Z = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "低压给水加热器级数";
                                     value: input-parameters.Z-l;
+                                    placeholder: "4";
+                                    changed value => {
+                                        input-parameters.Z-l = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "高压给水加热器级数";
                                     value: input-parameters.Z-h;
+                                    placeholder: "2";
+                                    changed value => {
+                                        input-parameters.Z-h = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
-                                    label: "加热器出口端差(HP)(°C)";
+                                NumericParameterInput {
+                                    label: "高压加热器出口端差(HP)(°C)";
                                     value: input-parameters.theta-hu;
+                                    placeholder: "3";
+                                    changed value => {
+                                        input-parameters.theta-hu = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
-                                    label: "加热器出口端差(LP)(°C)";
+                                NumericParameterInput {
+                                    label: "低压加热器出口端差(LP)(°C)";
                                     value: input-parameters.theta-lu;
+                                    placeholder: "2";
+                                    changed value => {
+                                        input-parameters.theta-lu = self.value;
+                                    }
                                 }
                             }
                         }
@@ -288,29 +423,49 @@ export component App inherits Window {
                         GroupBox {
                             title: "给水泵参数";
                             VerticalBox {
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵效率%";
                                     value: input-parameters.n-fwpp;
+                                    placeholder: "58";
+                                    changed value => {
+                                        input-parameters.n-fwpp = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵汽轮机内效率%";
                                     value: input-parameters.n-fwpti;
+                                    placeholder: "78 ~ 82";
+                                    changed value => {
+                                        input-parameters.n-fwpti = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵汽轮机机械效率%";
                                     value: input-parameters.n-fwptm;
+                                    placeholder: "90";
+                                    changed value => {
+                                        input-parameters.n-fwptm = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "给水泵汽轮机减速器效率%";
                                     value: input-parameters.n-fwptg;
+                                    placeholder: "98";
+                                    changed value => {
+                                        input-parameters.n-fwptg = self.value;
+                                    }
                                 }
 
-                                ParameterInput {
+                                NumericParameterInput {
                                     label: "假设冷凝器凝水量(kg/s)";
                                     value: input-parameters.g-cd;
+                                    placeholder: "";
+                                    changed value => {
+                                        input-parameters.g-cd = self.value;
+                                    }
                                 }
                             }
                         }
@@ -322,135 +477,9 @@ export component App inherits Window {
                 title: "计算结果";
                 ScrollView {
                     VerticalBox {
-                        GroupBox {
-                            title: "附表三";
-                            VerticalBox {
-                                ParameterInput {
-                                    label: "1.核电厂效率η-eNPP";
-                                    value: results.result1[0].eta-enpp;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "2.反应堆热功率Q-R(MW)";
-                                    value: results.result1[0].q-r;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "3.蒸汽发生器总蒸汽产量Ds(kg/s)";
-                                    value: results.result1[0].d-s;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "4.汽轮机高压缸耗气量G-shp(kg/s)";
-                                    value: results.result1[0].g-shp;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "5.汽轮机低压缸耗气量G-slp(kg/s)";
-                                    value: results.result1[0].g-slp;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "6.第一级再热器耗气量G-srh1(kg/s)";
-                                    value: results.result1[0].g-srh1;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "7.第二级再热器耗气量G-srh2(kg/s)";
-                                    value: results.result1[0].g-srh2;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "8.除氧器耗气量G-sdea(kg/s)";
-                                    value: results.result1[0].g-sdea;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "9.给水泵汽轮机耗气量G-sfwp(kg/s)";
-                                    value: results.result1[0].g-sfwp;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "10.给水泵给水量G-fw(kg/s)";
-                                    value: results.result1[0].g-fw;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "11.给水泵扬程H-fwp(m)";
-                                    value: results.result1[0].h-fwp;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "12.1.第七级抽汽量G-hes7(kg/s)";
-                                    value: results.result1[0].g-hes7;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "12.2.第六级抽汽量G-hes6(kg/s)";
-                                    value: results.result1[0].g-hes6;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "13.1.第四级抽汽量G-les4(kg/s)";
-                                    value: results.result1[0].g-les4;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "13.2.第三级抽汽量G-les3(kg/s)";
-                                    value: results.result1[0].g-les3;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "13.3.第二级抽汽量G-les2(kg/s)";
-                                    value: results.result1[0].g-les2;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "13.4.第一级抽汽量G-les1(kg/s)";
-                                    value: results.result1[0].g-les1;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "14.凝结水量G-cd(kg/s)";
-                                    value: results.result1[0].g-cd;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "15.汽水分离器疏水量G-uw(kg/s)";
-                                    value: results.result1[0].g-uw;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "16.一级再热器加热蒸汽量G-zc1(kg/s)";
-                                    value: results.result1[0].g-zc1;
-                                    enabled: false;
-                                }
-
-                                ParameterInput {
-                                    label: "17.二级再热器加热蒸汽量G-zc2(kg/s)";
-                                    value: results.result1[0].g-zc2;
-                                    enabled: false;
-                                }
-                            }
+                        for result[index] in results.result1: Table3 {
+                            result: result;
+                            index: index + 1;
                         }
 
                         GroupBox {
@@ -1117,7 +1146,21 @@ export component App inherits Window {
                     }
                 }
             }
+
+            Tab {
+                title: "计算代码";
+                TextEdit {
+                    height: 100%;
+                    width: 100%;
+                    read-only: true;
+                    text: root.calc_code;
+                    wrap: word-wrap;
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+                }
+            }
         }
+
 
         // 状态显示
         Rectangle {

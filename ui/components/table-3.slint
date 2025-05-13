@@ -1,0 +1,140 @@
+import { GroupBox, VerticalBox } from "std-widgets.slint";
+import { ParameterInput } from "./parameter-input.slint";
+import {Result1} from "../models/parameters.slint";
+
+export component Table3 {
+    in property <Result1> result;
+    in property <int> index;
+
+    GroupBox {
+        title: "附表三-\{index}";
+        VerticalBox {
+
+            ParameterInput {
+                label: "1.核电厂效率η-eNPP";
+                value: result.eta-enpp;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "2.反应堆热功率Q-R(MW)";
+                value: result.q-r;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "3.蒸汽发生器总蒸汽产量Ds(kg/s)";
+                value: result.d-s;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "4.汽轮机高压缸耗气量G-shp(kg/s)";
+                value: result.g-shp;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "5.汽轮机低压缸耗气量G-slp(kg/s)";
+                value: result.g-slp;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "6.第一级再热器耗气量G-srh1(kg/s)";
+                value: result.g-srh1;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "7.第二级再热器耗气量G-srh2(kg/s)";
+                value: result.g-srh2;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "8.除氧器耗气量G-sdea(kg/s)";
+                value: result.g-sdea;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "9.给水泵汽轮机耗气量G-sfwp(kg/s)";
+                value: result.g-sfwp;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "10.给水泵给水量G-fw(kg/s)";
+                value: result.g-fw;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "11.给水泵扬程H-fwp(MPa)";
+                value: result.h-fwp;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "12.1.第一级高压给水再热器抽汽量G-hes6(kg/s)";
+                value: result.g-hes6;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "12.2.第二级高压给水再热器抽汽量G-hes7(kg/s)";
+                value: result.g-hes7;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "13.1.第一级低压给水再热器抽汽量G-les1(kg/s)";
+                value: result.g-les1;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "13.2.第二级低压给水再热器抽汽量G-les2(kg/s)";
+                value: result.g-les2;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "13.3.第三级低压给水再热器抽汽量G-les3(kg/s)";
+                value: result.g-les3;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "13.4.第四级低压给水再热器抽汽量G-les4(kg/s)";
+                value: result.g-les4;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "14.凝结水量G-cd(kg/s)";
+                value: result.g-cd;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "15.汽水分离器疏水量G-uw(kg/s)";
+                value: result.g-uw;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "16.一级再热器加热蒸汽量G-zc1(kg/s)";
+                value: result.g-zc1;
+                enabled: false;
+            }
+
+            ParameterInput {
+                label: "17.二级再热器加热蒸汽量G-zc2(kg/s)";
+                value: result.g-zc2;
+                enabled: false;
+            }
+        }
+    }
+}

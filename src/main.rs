@@ -223,12 +223,12 @@ fn main() -> Result<(), PlatformError> {
             // 默认参数值
             let default_params = InputParameters {
                 P_c: 15.0,
-                P_s: 5.0,
+                P_s: 6.0,
                 T_rh2z: 15.0,
                 T_sw1: 24.0,
                 Z: 7.0,
-                Z_h: 4.0,
-                Z_l: 2.0,
+                Z_h: 2.0,
+                Z_l: 4.0,
                 dP_cd: 5.0,
                 dP_cwp: 3.1,
                 dP_ej: 4.0,
@@ -245,7 +245,7 @@ fn main() -> Result<(), PlatformError> {
                 g_cd: 1200.0,
                 n_1: 99.6,
                 n_e: 1000.0,
-                n_eNPP: 100.0,
+                n_eNPP: 99.0,
                 n_fwpp: 58.0,
                 n_fwptg: 98.0,
                 n_fwpti: 80.0,
@@ -384,8 +384,25 @@ fn main() -> Result<(), PlatformError> {
                                         result2: result2,
                                     };
 
+                                    // 获取计算代码
+                                    let calc_code = calculator.generate_calc_code();
+
+                                    println!("{}", calc_code);
+                                    app.set_calc_code(SharedString::from(&calc_code));
                                     app.set_results(result_params);
-                                    app.set_status(SharedString::from("计算完成，结果已保存"));
+                                    // 保存计算代码
+                                    match calculator.save_code_to_file(&output_dir) {
+                                        Ok(_) => {
+                                            app.set_status(SharedString::from(
+                                                "计算完成，结果已保存",
+                                            ));
+                                        }
+                                        Err(_) => {
+                                            app.set_status(SharedString::from(
+                                                "计算完成，但保存代码失败",
+                                            ));
+                                        }
+                                    }
                                 }
                                 Err(_) => {
                                     app.set_status(SharedString::from("计算完成，但保存参数失败"));

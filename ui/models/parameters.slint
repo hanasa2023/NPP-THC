@@ -1,0 +1,397 @@
+/// 输入参数
+export struct InputParameters {
+    // 已知条件和给定参数
+    /// 核电厂输出电功率, 给定，1000
+    n-e: float,
+    /// 一回路能量利用系数, 0.99 ~ 1.0
+    n-1: float,
+    /// 蒸汽发生器出口蒸汽干度，给定，99.75
+    x-fh: float,
+    /// 蒸汽发生器排污率，给定，1.05%
+    zeta-d: float,
+    /// 高压缸内效率，给定，82.07%
+    n-hi: float,
+    /// 低压缸内效率，给定，83.59%
+    n-li: float,
+    /// 汽轮机组机械效率，0.98 ~ 0.99
+    n-m: float,
+    /// 发电机效率，0.98 ~ 0.99
+    n-ge: float,
+    /// 新蒸汽压损，(3% ~ 7%)P-fh
+    dP-fh: float,
+    /// 再热蒸汽压损，dP-rh <= 10% P-hz
+    dP-rh: float,
+    /// 回热抽汽压损，(3% ~ 5%)P-cj
+    dP-ej: float,
+    /// 低压缸排汽压损，给定，5%P-cd
+    dP-cd: float,
+    // 流动损失
+    dP-f: float,
+    /// 高压给水加热器出口端差, 给定，3
+    theta-hu: float,
+    /// 低压给水加热器出口端差, 给定，2
+    theta-lu: float,
+    /// 加热器效率，0.97 ~ 0.99
+    n-h: float,
+    /// 给水泵效率，给定，0.58
+    n-fwpp: float,
+    /// 给水泵汽轮机内效率，0.78 ~ 0.82
+    n-fwpti: float,
+    /// 给水泵汽轮机机械效率，给定，0.90
+    n-fwptm: float,
+    /// 给水泵汽轮机减速器效率，给定， 0.98
+    n-fwptg: float,
+    /// 循环冷却水进口温度，给定，24
+    T-sw1: float,
+    // 确定的主要热力参数
+    /// 反应堆冷却剂系统运行压力，15 ~ 16
+    P-c: float,
+    /// 反应堆出口冷却剂过冷度，15 ~ 20
+    dT-sub: float,
+    /// 反应堆进出口冷却剂温升，30 ~ 40
+    dT-c: float,
+    /// 蒸汽发生器饱和蒸汽压力，5.0 ~ 7.0
+    P-s: float,
+    /// 冷凝器中循环冷却水温升，6 ~ 8
+    dT-sw: float,
+    /// 冷凝器传热端差，3 ~ 10
+    dT: float,
+    // 高压缸排汽压力比，12 ~ 14
+    dP-hz: float,
+    // 再热蒸汽温度差
+    T-rh2z: float,
+    /// 回热级数
+    Z: float,
+    /// 低压给水加热器级数
+    Z-l: float,
+    /// 高压给水加热器级数
+    Z-h: float,
+    /// 给水温度系数，85 ~ 90
+    dT-fw: float,
+    // 核电站效率
+    n-eNPP: float,
+    // 给水泵出口压力, 1.15 ~ 1.25
+    dP-fwpo: float,
+    // 凝水泵出口压力, 3 ~ 3.2
+    dP-cwp: float,
+    // 假设冷凝器凝水量
+    g-cd: float,
+}
+
+
+/// 附表三
+export struct Result1 {
+    /// 1.核电厂效率η-eNPP
+    eta-enpp: float,
+    /// 2.反应堆热功率Q-R
+    q-r: float,
+    /// 3.蒸汽发生器总蒸汽产量Ds
+    d-s: float,
+    /// 4.汽轮机高压缸耗气量G-shp
+    g-shp: float,
+    /// 5.汽轮机低压缸耗气量G-slp
+    g-slp: float,
+    /// 6.第一级再热器耗气量G-srh1
+    g-srh1: float,
+    /// 7.第二级再热器耗气量G-srh2
+    g-srh2: float,
+    /// 8.除氧器耗气量G-sdea
+    g-sdea: float,
+    /// 9.给水泵汽轮机耗气量G-sfwp
+    g-sfwp: float,
+    /// 10.给水泵给水量G-fw
+    g-fw: float,
+    /// 11.给水泵扬程H-fwp
+    h-fwp: float,
+    /// 12.1.第七级抽汽量G-hes7
+    g-hes7: float,
+    /// 12.2.第六级抽汽量G-hes6
+    g-hes6: float,
+    /// 13.1.第四级抽汽量G-les4
+    g-les4: float,
+    /// 13.2.第三级抽汽量G-les3
+    g-les3: float,
+    /// 13.3.第二级抽汽量G-les2
+    g-les2: float,
+    /// 13.4.第一级抽汽量G-les1
+    g-les1: float,
+    /// 14.凝结水量G-cd
+    g-cd: float,
+    /// 15.汽水分离器疏水量G-uw
+    g-uw: float,
+    /// 16.一级再热器加热蒸汽量G-zc1
+    g-zc1: float,
+    /// 17.二级再热器加热蒸汽量G-zc2
+    g-zc2: float,
+}
+
+export struct FWParameters {
+    /// 进口给水压力p-fwxi
+    p-fwxi: float,
+    /// 进口给水比焓h-fwxi
+    h-fwxi: float,
+    /// 进口给水温度T-fwxi
+    t-fwxi: float,
+    /// 出口给水压力p-fwxo
+    p-fwxo: float,
+    /// 出口给水比焓h-fwxo
+    h-fwxo: float,
+    /// 出口给水温度T-fwxo
+    t-fwxo: float,
+    /// 汽侧疏水温度T-roxk
+    t-roxk: float,
+    /// 汽侧疏水比焓h-roxk
+    h-roxk: float,
+}
+
+export struct HESParameters {
+    /// 抽汽压力p-hesx
+    p-hesx: float,
+    /// 抽汽干度X-hesx
+    x-hesx: float,
+    /// 抽汽理想比焓h-hesxs
+    h-hesxs: float,
+    /// 抽汽比焓h-hesx
+    h-hesx: float,
+}
+
+export struct RHXParameters {
+    /// 加热蒸汽进口压力p-rhx
+    p-rhx: float,
+    /// 加热蒸汽进口干度X-rhx
+    x-rhx: float,
+    /// 加热蒸汽进口温度T-rhx
+    t-rhx: float,
+    /// 加热蒸汽进口比焓h-rhx
+    h-rhx: float,
+    /// 再热器疏水比焓h-zsx
+    h-zsx: float,
+}
+
+/// 附表一、二
+export struct Result2 {
+    // 附表一
+    /// 1.核电厂输出功率N-e
+    ne: float,
+    /// 2.一回路能量利用系数η-1
+    eta-1: float,
+    /// 3.蒸汽发生器出口蒸汽干度X-fh
+    x-fh: float,
+    /// 4.蒸汽发生器排污率ξ-d
+    zeta-d: float,
+    /// 5.高压缸内效率η-hi
+    eta-hi: float,
+    /// 6.低压缸内效率η-li
+    eta-li: float,
+    /// 7.汽轮机组机械效率η-m
+    eta-m: float,
+    /// 8.发电机效率η-ge
+    eta-ge: float,
+    /// 9.新蒸汽压损Δp-fh
+    dp-fh: float,
+    /// 10.再热蒸汽压损Δp-rh
+    dp-rh: float,
+    /// 11.回热蒸汽压损Δp-ej
+    dp-ej: float,
+    /// 12.低压缸排气压损Δp-cd
+    dp-cd: float,
+    /// 13.高压给水加热器出口端差θ-hu
+    theta-hu: float,
+    /// 14.低压给水加热器出口端差θ-hu
+    theta-lu: float,
+    /// 15.加热器效率η-h
+    eta-h: float,
+    /// 16.给水泵效率η-fwpp
+    eta-fwpp: float,
+    /// 17.给水泵汽轮机内效率η-fwpti
+    eta-fwpti: float,
+    /// 18.给水泵汽轮机机械效率η-fwptm
+    eta-fwptm: float,
+    /// 19.给水泵汽轮机减速器效率η-fwptg
+    eta-fwptg: float,
+    /// 20.循环冷却水进口温度T-sw1
+    t-sw1: float,
+    // 附表二
+    /// 1.反应堆冷却剂系统运行压力p-c
+    p-c: float,
+    /// 2.冷却剂压力对应的饱和温度T-cs
+    t-cs: float,
+    /// 3.反应堆出口冷却剂过冷度ΔT-sub
+    dt-sub: float,
+    /// 4.反应堆出口冷却剂温度T-co
+    t-co: float,
+    /// 5.反应堆进出口冷却剂温升ΔT-c
+    dt-c: float,
+    /// 6.反应堆进口冷却剂温度T-ci
+    t-ci: float,
+    /// 7.蒸汽发生器饱和蒸汽压力p-s
+    p-s: float,
+    /// 8.蒸汽发生器饱和蒸汽温度T-fh
+    t-fh: float,
+    /// 9.一、二次侧对数平均温差ΔT-m
+    dt-m: float,
+    /// 10.冷凝器中循环冷却水温升ΔT-sw
+    dt-sw: float,
+    /// 11.冷凝器传热端差δT
+    dt: float,
+    /// 12.冷凝器凝结水饱和温度T-cd
+    t-cd: float,
+    /// 13.冷凝器的运行压力p-cd
+    p-cd: float,
+    /// 14.高压缸进口的蒸汽压力p-hi
+    p-hi: float,
+    /// 15.高压缸进口蒸汽干度X-hi
+    x-hi: float,
+    /// 15.1.蒸汽发生器出口蒸汽比焓h-fh
+    h-fh: float,
+    /// 15.2.蒸汽发生器出口蒸汽比熵s-fh
+    s-fh: float,
+    /// 15.3.高压缸进口蒸汽比熵s-hi
+    s-hi: float,
+    /// 16.高压缸排气压力p-hz
+    p-hz: float,
+    /// 17.高压缸排气干度X-hz
+    x-hz: float,
+    /// 17.1.高压缸进口蒸汽比焓h-hi
+    h-hi: float,
+    /// 17.2.高压缸出口理想比焓h-hzs
+    h-hzs: float,
+    /// 17.3.高压缸出口蒸汽比焓h-hz
+    h-hz: float,
+    /// 18.汽水分离器进口蒸汽压力p-spi
+    p-spi: float,
+    /// 19.汽水分离器进口蒸汽干度X-spi
+    x-spi: float,
+    /// 19.1.汽水分离器出口疏水压力p-uw
+    p-uw: float,
+    /// 19.2.汽水分离器出口疏水比焓h-uw
+    h-uw: float,
+    // 第一级再热器
+    /// 20.再热蒸汽进口压力p-rh1i
+    p-rh1i: float,
+    /// 21.再热蒸汽进口干度X-rh1i
+    x-rh1i: float,
+    /// 21.1.一级再热器进口蒸汽比焓h-rh1i
+    h-rh1i: float,
+    /// 22.加热蒸汽进口压力p-rh1hs
+    p-rh1hs: float,
+    /// 23.加热蒸汽进口干度X-rh1hs
+    x-rh1hs: float,
+    // 第二级再热器
+    /// 24.再热蒸汽进口压力p-rh2i
+    p-rh2i: float,
+    /// 25.再热蒸汽进口温度T-rh2i
+    t-rh2i: float,
+    /// 26.再热蒸汽出口压力p-rh2z
+    p-rh2z: float,
+    /// 27.再热蒸汽出口温度T-rh2z
+    t-rh2z: float,
+    /// 27.1.二级再热器出口比焓h-rh2z
+    h-rh2z: float,
+    /// 27.2.每级再热器平均焓升Δh-rh
+    dh-rh: float,
+    /// 27.3.一级再热器出口蒸汽比焓h-rh1z
+    h-rh1z: float,
+    /// 27.4.二级再热器进口蒸汽比焓h-rh2i
+    h-rh2i: float,
+    /// 28.加热蒸汽进口压力p-rh2hs
+    p-rh2hs: float,
+    /// 29.加热蒸汽进口干度X-rh2hs
+    x-rh2hs: float,
+    // 低压缸
+    /// 30.进口蒸汽压力p-li
+    p-li: float,
+    /// 31.进口蒸汽温度T-li
+    t-li: float,
+    /// 32.排汽压力p-lz
+    p-lz: float,
+    /// 33.排汽干度X-lz
+    x-lz: float,
+    /// 33.1.低压缸进口蒸汽比熵s-li
+    s-li: float,
+    /// 33.2.低压缸进口蒸汽比焓h-li
+    h-li: float,
+    /// 33.3.低压缸出口理想比焓h-lzs
+    h-lzs: float,
+    /// 33.4.低压缸出口蒸汽比焓h-lz
+    h-lz: float,
+    /// 34.回热级数Z
+    z: float,
+    /// 35.低压给水加热器级数Z-l
+    z-l: float,
+    /// 36.高压给水加热器级数Z-h
+    z-h: float,
+    /// 37.第一次给水回热分配Δh-fw
+    dh-fw: float,
+    /// 37.1.蒸汽发生器运行压力饱和水比焓h-s
+    h-s: float,
+    /// 37.2.冷凝器出口凝结水比焓h-cd
+    h-cd: float,
+    /// 37.3.每级加热器理论给水焓升Δh-fwop
+    dh-fwop: float,
+    /// 37.4.最佳给水比焓h-fwop
+    h-fwop: float,
+    /// 37.5.最佳给水温度T-fwop
+    t-fwop: float,
+    /// 37.6.实际给水温度T-fw
+    t-fw: float,
+    /// 37.7.实际给水比焓h-fw
+    h-fw: float,
+    /// 38.高压加热器给水焓升Δh-fwh
+    dh-fwh: float,
+    /// 38.1.除氧器运行压力p-dea
+    p-dea: float,
+    /// 38.2.除氧器出口饱和水比焓h-deao
+    h-deao: float,
+    /// 39.除氧器及低压加热器给水焓升Δh-fwl
+    dh-fwl: float,
+    /// 39.1.凝水泵出口给水压力p-cwp
+    p-cwp: float,
+    /// 39.2.凝水泵出口给水比焓h-cwp
+    h-cwp: float,
+    /// 39.3.凝水泵出口至除氧器出口的阻力压降Δp-cws
+    dp-cws: float,
+    /// 39.4.每级低压加热器及除氧器的阻力压降Δp-fi
+    dp-fi: float,
+    /// 40.低压加热器给水参数(1 ~ 4级)
+    lfwx: [FWParameters],
+    /// 41.进口给水比焓h-deai
+    h-deai: float,
+    /// 42.出口给水比焓h-deao
+    h-deao1: float,
+    /// 43.出口给水温度T-dea
+    t-dea: float,
+    /// 44.运行压力p-dea
+    p-dea1: float,
+    /// 44.1.给水泵出口压力p-fwpo
+    p-fwpo: float,
+    /// 44.2.给水泵出口流体比焓h-fwpo
+    h-fwpo: float,
+    /// 44.3.蒸汽发生器进口给水压力p-fwi
+    p-fwi: float,
+    /// 45.高压加热器给水参数(6 ~ 7级)
+    hfwx: [FWParameters],
+    // 46.高压缸抽汽
+    /// 46.1.高压缸进口蒸汽比熵s-hi
+    s-hi1: float,
+    /// 46.2.高压缸进口蒸汽比焓h-hi
+    h-hi1: float,
+    /// 第六、七级给水加热器抽汽参数
+    hhes: [HESParameters],
+    // 47.低压缸抽汽
+    /// 47.1.低压缸进口蒸汽比熵s-li
+    s-li1: float,
+    /// 47.2.低压缸进口蒸汽比焓h-li
+    h-li1: float,
+    /// 第一至四级给水加热器抽汽参数
+    lhes: [HESParameters],
+    /// 48.再热器抽汽(第一、二级再热器抽汽参数)
+    rhx: [RHXParameters],
+}
+
+export struct MyResult {
+    /// 热平衡计算结果
+    result1: [Result1],
+    /// 附表
+    result2: Result2,
+}

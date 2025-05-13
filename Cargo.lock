@@ -3,6 +3,19 @@
 version = 4
 
 [[package]]
+name = "NPP-THC"
+version = "0.1.0"
+dependencies = [
+ "calc",
+ "rfd",
+ "serde",
+ "serde_json",
+ "seuif97",
+ "slint",
+ "slint-build",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1172,19 +1185,6 @@ name = "ctor-lite"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f791803201ab277ace03903de1594460708d2d54df6053f2d9e82f592b19e3b"
-
-[[package]]
-name = "curriculum_design2"
-version = "0.1.0"
-dependencies = [
- "calc",
- "rfd",
- "serde",
- "serde_json",
- "seuif97",
- "slint",
- "slint-build",
-]
 
 [[package]]
 name = "cursor-icon"

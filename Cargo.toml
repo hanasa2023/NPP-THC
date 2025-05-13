@@ -1,5 +1,5 @@
 [package]
-name = "curriculum_design2"
+name = "NPP-THC"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,5 +18,5 @@ rfd = "0.15.3"
 slint-build = "1.11.0"
 
 [[bin]]
-name = "curriculum_design2"
+name = "NPP-THC"
 path = "src/main.rs"

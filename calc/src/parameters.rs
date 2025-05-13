@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CalcInputParameters {
     // 已知条件和给定参数
     /// 核电厂输出电功率, 给定，1000(MW)
@@ -66,13 +66,13 @@ pub struct CalcInputParameters {
     pub dt: f64,
     /// 高压缸排汽压力与进口蒸汽压力之比(%)，最佳分压：12 ~ 14%
     pub dp_hz: f64,
-    /// 第二级再热器再热蒸汽出口温度与出口温度之差13 ~ 15℃
+    /// 第二级再热器再热蒸汽出口温度与新蒸汽温度之差13 ~ 15℃
     pub t_rh2z: f64,
-    /// 回热级数
+    /// 回热级数，7
     pub z: f64,
-    /// 低压给水加热器级数
+    /// 低压给水加热器级数，4
     pub z_l: f64,
-    /// 高压给水加热器级数
+    /// 高压给水加热器级数，2
     pub z_h: f64,
     /// 实际给水温度/最佳给水温度，85 ~ 90%
     pub dt_fw: f64,
@@ -85,6 +85,50 @@ pub struct CalcInputParameters {
 impl Display for CalcInputParameters {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
+    }
+}
+
+impl Default for CalcInputParameters {
+    fn default() -> Self {
+        Self {
+            p_c: 15.5,
+            p_s: 6.0,
+            t_rh2z: 15.0,
+            t_sw1: 24.0,
+            z: 7.0,
+            z_h: 2.0,
+            z_l: 4.0,
+            dp_cd: 5.0,
+            dp_cwp: 3.1,
+            dp_ej: 4.0,
+            dp_f: 1.0,
+            dp_fh: 5.0,
+            dp_fwpo: 1.2,
+            dp_hz: 13.0,
+            dp_rh: 8.0,
+            dt: 5.0,
+            dt_c: 35.0,
+            dt_fw: 85.0,
+            dt_sub: 15.0,
+            dt_sw: 7.0,
+            g_cd: 1200.0,
+            n_1: 99.6,
+            ne: 1000.0,
+            ne_npp: 100.0,
+            n_fwpp: 58.0,
+            n_fwptg: 98.0,
+            n_fwpti: 80.0,
+            n_fwptm: 90.0,
+            n_ge: 99.0,
+            n_h: 98.0,
+            n_hi: 82.07,
+            n_li: 83.59,
+            n_m: 98.5,
+            theta_hu: 3.0,
+            theta_lu: 2.0,
+            x_fh: 99.75,
+            zeta_d: 1.05,
+        }
     }
 }
 

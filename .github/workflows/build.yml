@@ -23,7 +23,7 @@ jobs:
           - os: windows-latest
             artifact_name: app-windows
             asset_name_suffix: .exe
-            executable_name: NPP_THC.exe
+            executable_name: NPP-THC.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -82,7 +82,7 @@ jobs:
           # 'artifacts/app-windows/' 目录下的文件将是 'NPP_THC.exe'
           mv artifacts/app-linux/NPP-THC release_assets/NPP-THC-linux
           mv artifacts/app-macos/NPP-THC release_assets/NPP-THC-macos
-          mv artifacts/app-windows/NPP_THC.exe release_assets/NPP-THC-windows.exe
+          mv artifacts/app-windows/NPP-THC.exe release_assets/NPP-THC-windows.exe
           
           echo "Prepared assets in release_assets:"
           ls -R release_assets

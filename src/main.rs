@@ -321,7 +321,7 @@ fn main() -> Result<(), PlatformError> {
             app.set_status(SharedString::from("计算中..."));
 
             // 创建一个计算器实例
-            let mut calculator = Calculator::new(calc_params);
+            let mut calculator = Calculator::new(calc_params); // 修改此行
 
             // 执行计算
             match calculator.calculate() {
@@ -385,24 +385,13 @@ fn main() -> Result<(), PlatformError> {
                                     };
 
                                     // 获取计算代码
-                                    let calc_code = calculator.generate_calc_code();
+                                    let rs_calc_code = calculator.generate_calc_code_rs();
+                                    let py_calc_code = calculator.generate_calc_code_py();
 
-                                    println!("{}", calc_code);
-                                    app.set_calc_code(SharedString::from(&calc_code));
+                                    app.set_rs_calc_code(SharedString::from(&rs_calc_code));
+                                    app.set_py_calc_code(SharedString::from(&py_calc_code));
                                     app.set_results(result_params);
-                                    // 保存计算代码
-                                    match calculator.save_code_to_file(&output_dir) {
-                                        Ok(_) => {
-                                            app.set_status(SharedString::from(
-                                                "计算完成，结果已保存",
-                                            ));
-                                        }
-                                        Err(_) => {
-                                            app.set_status(SharedString::from(
-                                                "计算完成，但保存代码失败",
-                                            ));
-                                        }
-                                    }
+                                    app.set_status(SharedString::from("计算完成"));
                                 }
                                 Err(_) => {
                                     app.set_status(SharedString::from("计算完成，但保存参数失败"));
@@ -418,6 +407,84 @@ fn main() -> Result<(), PlatformError> {
                     app.set_status(SharedString::from(format!("计算失败: {}", e)));
                 }
             }
+        }
+    });
+
+    // 保存计算代码
+    let save_handle = app_handle.clone();
+    app.on_save_calc_code(move || {
+        if let Some(app) = save_handle.upgrade() {
+            let output_dir = app.get_output_directory().to_string();
+            if output_dir.is_empty() {
+                app.set_status(SharedString::from("请先选择输出目录"));
+                return;
+            }
+
+            // 将UI中的输入参数转换成计算库需要的参数结构体
+            let input_params = app.get_input_parameters();
+            let calc_params = calc::parameters::CalcInputParameters {
+                ne: input_params.n_e as f64,
+                n_1: (input_params.n_1 / 100.0) as f64,
+                x_fh: (input_params.x_fh / 100.0) as f64,
+                zeta_d: (input_params.zeta_d / 100.0) as f64,
+                n_hi: (input_params.n_hi / 100.0) as f64,
+                n_li: (input_params.n_li / 100.0) as f64,
+                n_m: (input_params.n_m / 100.0) as f64,
+                n_ge: (input_params.n_ge / 100.0) as f64,
+                dp_fh: (input_params.dP_fh / 100.0) as f64,
+                dp_rh: (input_params.dP_rh / 100.0) as f64,
+                dp_ej: (input_params.dP_ej / 100.0) as f64,
+                dp_cd: (input_params.dP_cd / 100.0) as f64,
+                dp_f: (input_params.dP_f / 100.0) as f64,
+                theta_hu: input_params.theta_hu as f64,
+                theta_lu: input_params.theta_lu as f64,
+                n_h: (input_params.n_h / 100.0) as f64,
+                n_fwpp: (input_params.n_fwpp / 100.0) as f64,
+                n_fwpti: (input_params.n_fwpti / 100.0) as f64,
+                n_fwptm: (input_params.n_fwptm / 100.0) as f64,
+                n_fwptg: (input_params.n_fwptg / 100.0) as f64,
+                t_sw1: input_params.T_sw1 as f64,
+                p_c: input_params.P_c as f64,
+                dt_sub: input_params.dT_sub as f64,
+                dt_c: input_params.dT_c as f64,
+                p_s: input_params.P_s as f64,
+                dt_sw: input_params.dT_sw as f64,
+                dt: input_params.dT as f64,
+                dp_hz: (input_params.dP_hz / 100.0) as f64,
+                t_rh2z: input_params.T_rh2z as f64,
+                z: input_params.Z as f64,
+                z_l: input_params.Z_l as f64,
+                z_h: input_params.Z_h as f64,
+                dt_fw: (input_params.dT_fw / 100.0) as f64,
+                ne_npp: (input_params.n_eNPP / 100.0) as f64,
+                dp_fwpo: input_params.dP_fwpo as f64,
+                dp_cwp: input_params.dP_cwp as f64,
+                g_cd: input_params.g_cd as f64,
+            };
+
+            // 创建一个计算器实例
+            let calculator = Calculator::new(calc_params);
+
+            // 保存计算代码
+            match calculator.save_code_to_file(&output_dir) {
+                Ok(_) => {
+                    app.set_status(SharedString::from("计算代码已保存"));
+                }
+                Err(_) => {
+                    app.set_status(SharedString::from("保存计算代码失败"));
+                }
+            }
+        }
+    });
+
+    // 清空输入参数
+    let clear_handle = app_handle.clone();
+    app.on_clear_input_parameters(move || {
+        if let Some(app) = clear_handle.upgrade() {
+            // 清空输入参数
+            let default_params = InputParameters::default();
+            app.set_input_parameters(default_params);
+            app.set_status(SharedString::from("已清空输入参数"));
         }
     });
 

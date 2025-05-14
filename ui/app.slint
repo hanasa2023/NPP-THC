@@ -4,7 +4,7 @@ import { AboutDialog, Table3, NumericParameterInput, ParameterInput, FWPreview, 
 
 export component App inherits Window {
     title: "核电厂热力计算程序";
-    icon: @image-url("./assets/logo.jpg");
+    icon: @image-url("./assets/logo.png");
     min-width: 800px;
     min-height: 600px;
 
@@ -14,6 +14,8 @@ export component App inherits Window {
     callback load-parameters();
     callback select-output-directory();
     callback open-file-dialog(string);
+    callback save-calc-code();
+    callback clear-input-parameters();
 
     // 保存目录
     in-out property <string> output-directory: "";
@@ -24,7 +26,8 @@ export component App inherits Window {
     in-out property <bool> show-about-dialog: false;
 
     in property <MyResult> results;
-    in property <string> calc_code: "未计算，无法生成计算代码！";
+    in property <string> rs-calc-code: "未计算，无法生成计算代码！";
+    in property <string> py-calc-code: "未计算，无法生成计算代码！";
 
     in property <string> status: "就绪";
 
@@ -67,6 +70,13 @@ export component App inherits Window {
             }
 
             MenuItem {
+                title: "清空输入参数";
+                activated => {
+                    root.clear-input-parameters();
+                }
+            }
+
+            MenuItem {
                 title: "开始计算";
                 activated => {
                     if (root.output-directory == "") {
@@ -76,15 +86,34 @@ export component App inherits Window {
                     }
                 }
             }
+
+            MenuItem {
+                title: "保存计算代码";
+                activated => {
+                    if (root.output-directory == "") {
+                        root.select-output-directory();
+                    } else {
+                        root.save-calc-code();
+                    }
+                }
+            }
         }
 
-        // 可以根据需要添加更多菜单
+        Menu {
+            title: "原理图";
+            MenuItem {
+                title: "生成";
+                activated => {
+                    // TODO: 实现生成原理图生成
+                }
+            }
+        }
+
         Menu {
             title: "帮助";
             MenuItem {
                 title: "关于";
                 activated => {
-                    // 实现关于对话框
                     root.show-about-dialog = true;
                 }
             }
@@ -1148,12 +1177,25 @@ export component App inherits Window {
             }
 
             Tab {
-                title: "计算代码";
+                title: "计算代码(Rust)";
                 TextEdit {
                     height: 100%;
                     width: 100%;
                     read-only: true;
-                    text: root.calc_code;
+                    text: root.rs-calc-code;
+                    wrap: word-wrap;
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+                }
+            }
+
+            Tab {
+                title: "计算代码(Python)";
+                TextEdit {
+                    height: 100%;
+                    width: 100%;
+                    read-only: true;
+                    text: root.py-calc-code;
                     wrap: word-wrap;
                     horizontal-stretch: 1;
                     vertical-stretch: 1;

@@ -4,10 +4,6 @@ on:
   push:
     tags:
       - "v*.*.*" # 仅在版本标签上触发
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
 
 jobs:
   build:
@@ -19,12 +15,15 @@ jobs:
           - os: ubuntu-latest
             artifact_name: app-linux
             asset_name_suffix: ""
+            executable_name: NPP-THC
           - os: macos-latest
             artifact_name: app-macos
             asset_name_suffix: ""
+            executable_name: NPP-THC
           - os: windows-latest
             artifact_name: app-windows
             asset_name_suffix: .exe
+            executable_name: NPP_THC.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -48,22 +47,49 @@ jobs:
       - name: 构建项目
         run: cargo build --release --verbose
 
-      - name: 准备构建产物路径 (Linux/macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        id: artifact_details_unix
+      - name: 准备构建产物路径
+        id: artifact_details
         shell: bash
         run: |
-          echo "ARTIFACT_PATH=target/release/NPP-THC" >> $GITHUB_ENV
-
-      - name: 准备构建产物路径 (Windows)
-        if: runner.os == 'Windows'
-        id: artifact_details_windows
-        shell: bash # 使用 bash 以保持一致性，或 powershell
-        run: |
-          echo "ARTIFACT_PATH=target/release/NPP_THC.exe" >> $GITHUB_ENV
+          echo "ARTIFACT_PATH=target/release/${{ matrix.executable_name }}" >> $GITHUB_ENV
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ env.ARTIFACT_PATH }}
+          name: ${{ matrix.artifact_name }} # e.g., app-linux
+          path: ${{ env.ARTIFACT_PATH }} # Path to the single executable
+
+  create_release:
+    name: Create Release and Upload Assets
+    runs-on: ubuntu-latest
+    needs: build # 确保 build 作业 (所有 matrix 配置) 成功完成
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts # 将所有构建产物下载到 'artifacts' 目录
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          mkdir release_assets
+          # 从构建产物目录移动并重命名可执行文件
+          # 'artifacts/app-linux/' 目录下的文件将是 'NPP-THC'
+          # 'artifacts/app-windows/' 目录下的文件将是 'NPP_THC.exe'
+          mv artifacts/app-linux/NPP-THC release_assets/NPP-THC-linux
+          mv artifacts/app-macos/NPP-THC release_assets/NPP-THC-macos
+          mv artifacts/app-windows/NPP_THC.exe release_assets/NPP-THC-windows.exe
+          
+          echo "Prepared assets in release_assets:"
+          ls -R release_assets
+
+      - name: Create GitHub Release and Upload Assets
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release_assets/*" # 上传 release_assets 目录下的所有文件
+          token: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN 会被自动提供
+          name: NPP-THC ${{ github.ref_name }} # 可以自定义 Release 的名称

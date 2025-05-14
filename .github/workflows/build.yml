@@ -23,7 +23,7 @@ jobs:
           - os: windows-latest
             artifact_name: app-windows
             asset_name_suffix: .exe
-            executable_name: NPP_THC.exe
+            executable_name: NPP-THC.exe
 
     runs-on: ${{ matrix.os }}
 

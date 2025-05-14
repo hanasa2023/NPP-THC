@@ -3,7 +3,7 @@ name: 构建 Slint 应用程序
 on:
   push:
     tags:
-      - 'v*.*.*' # 仅在版本标签上触发
+      - "v*.*.*" # 仅在版本标签上触发
   # push:
   #   branches: [ main ]
   # pull_request:
@@ -25,46 +25,45 @@ jobs:
           - os: windows-latest
             artifact_name: app-windows
             asset_name_suffix: .exe
-    
+
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v4
+      - name: 检出代码
+        uses: actions/checkout@v4
 
-    - name: 设置 Rust 环境
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
+      - name: 设置 Rust 环境
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
 
-    - name: 安装 Linux 依赖 (GTK)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y pkg-config libfontconfig1-dev libgtk-3-dev
+      - name: 安装 Linux 依赖 (GTK)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libfontconfig1-dev libgtk-3-dev
 
-    - name: 构建项目
-      run: cargo build --release --verbose
+      - name: 构建项目
+        run: cargo build --release --verbose
 
-    - name: 准备构建产物路径 (Linux/macOS)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      id: artifact_details_unix
-      shell: bash
-      run: |
-        echo "ARTIFACT_PATH=target/release/curriculum_design2" >> $GITHUB_ENV
-        
-    - name: 准备构建产物路径 (Windows)
-      if: runner.os == 'Windows'
-      id: artifact_details_windows
-      shell: bash # 使用 bash 以保持一致性，或 powershell
-      run: |
-        echo "ARTIFACT_PATH=target/release/curriculum_design2.exe" >> $GITHUB_ENV
+      - name: 准备构建产物路径 (Linux/macOS)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        id: artifact_details_unix
+        shell: bash
+        run: |
+          echo "ARTIFACT_PATH=target/release/NPP-THC" >> $GITHUB_ENV
 
-    - name: 上传构建产物
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: ${{ env.ARTIFACT_PATH }}
+      - name: 准备构建产物路径 (Windows)
+        if: runner.os == 'Windows'
+        id: artifact_details_windows
+        shell: bash # 使用 bash 以保持一致性，或 powershell
+        run: |
+          echo "ARTIFACT_PATH=target/release/NPP_THC.exe" >> $GITHUB_ENV
 
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ env.ARTIFACT_PATH }}

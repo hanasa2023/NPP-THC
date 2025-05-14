@@ -5,7 +5,6 @@ export component NumericParameterInput {
     in-out property <float> value;
     in-out property <string> placeholder;
     in-out property <bool> enabled: true;
-    private property <bool> was_edited: false;
 
     HorizontalBox {
         Text {
@@ -17,10 +16,9 @@ export component NumericParameterInput {
             placeholder-text: root.placeholder;
             input-type: InputType.number;
 
-            text: (root.value == 0 && !root.was_edited) ? "" : "\{root.value}";
+            text: root.value == 0 ? "" : "\{root.value}";
 
             edited(current-text) => {
-                was_edited = true;
                 root.value = current-text.to-float();
             }
             min-width: 100px; // Adjust as needed

@@ -7,15 +7,20 @@ edition = "2021"
 members = ["calc"]
 
 [dependencies]
-slint = "1.11.0"
+iced = { version = "0.13.1", features = ["tokio", "debug"] }
+iced_aw = { version = "0.12.2", default-features = false, features = [
+  "menu",
+  "quad",
+  "tab_bar",
+  "tabs",
+] }
+tokio = { version = "1.45.0", features = ["fs"] }
+log = "0.4.8"
 seuif97 = "1.1.4"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 calc = { path = "./calc" }
 rfd = "0.15.3"
-
-[build-dependencies]
-slint-build = "1.11.0"
 
 [[bin]]
 name = "NPP-THC"

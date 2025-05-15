@@ -10,18 +10,12 @@ use parameters::{
 };
 use seuif97::*;
 
+#[derive(Default)]
 pub struct Calculator {
     params: CalcInputParameters,
     results: CalcResultParamters,
-}
-
-impl Default for Calculator {
-    fn default() -> Self {
-        Self {
-            params: CalcInputParameters::default(),
-            results: CalcResultParamters::default(),
-        }
-    }
+    calc_code_rs: String,
+    calc_code_py: String,
 }
 
 impl Calculator {
@@ -29,7 +23,13 @@ impl Calculator {
         Self {
             params,
             results: CalcResultParamters::default(),
+            calc_code_rs: String::new(),
+            calc_code_py: String::new(),
         }
+    }
+
+    pub fn set_input_params(&mut self, params: CalcInputParameters) {
+        self.params = params;
     }
 
     /// 计算核电厂的热力学参数
@@ -536,7 +536,7 @@ impl Calculator {
             ],
         };
 
-        return Ok(());
+        Ok(())
     }
 
     /// 计算低压加热器参数
@@ -636,7 +636,7 @@ impl Calculator {
 
     /// 将计算参数保存到json文件
     pub fn save_parameters_to_file(&self, base_path: &str) -> std::io::Result<()> {
-        let file = File::create(&format!("{}/parameters.json", base_path))?;
+        let file = File::create(format!("{}/parameters.json", base_path))?;
         let writer = BufWriter::new(file);
         serde_json::to_writer_pretty(writer, &self.params)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
@@ -645,7 +645,7 @@ impl Calculator {
 
     /// 将计算结果保存到json文件
     pub fn save_results_to_file(&self, base_path: &str) -> std::io::Result<()> {
-        let file = File::create(&format!("{}/results.json", base_path))?;
+        let file = File::create(format!("{}/results.json", base_path))?;
         let writer = BufWriter::new(file);
         serde_json::to_writer_pretty(writer, &self.results)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
@@ -654,14 +654,24 @@ impl Calculator {
 
     /// 将计算代码保存到文件
     pub fn save_code_to_file(&self, base_path: &str) -> std::io::Result<()> {
-        let rs_code = self.generate_calc_code_rs();
-        let file = File::create(&format!("{}/calc.rs", base_path))?;
+        if self.calc_code_rs.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Rust 计算代码为空",
+            ));
+        }
+        let file = File::create(format!("{}/calc.rs", base_path))?;
         let mut writer = BufWriter::new(file);
-        writer.write_all(rs_code.as_bytes())?;
-        let py_code = self.generate_calc_code_py();
-        let file = File::create(&format!("{}/calc.py", base_path))?;
+        writer.write_all(self.calc_code_rs.as_bytes())?;
+        if self.calc_code_py.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Python 计算代码为空",
+            ));
+        }
+        let file = File::create(format!("{}/calc.py", base_path))?;
         let mut writer = BufWriter::new(file);
-        writer.write_all(py_code.as_bytes())?;
+        writer.write_all(self.calc_code_py.as_bytes())?;
         Ok(())
     }
 
@@ -675,7 +685,7 @@ impl Calculator {
     }
 
     /// 生成计算代码
-    pub fn generate_calc_code_rs(&self) -> String {
+    pub fn generate_calc_code_rs(&mut self) -> String {
         let mut code = String::new();
         // 使用 self.params 来获取输入参数的实际值
         let params = &self.params;
@@ -1155,9 +1165,7 @@ impl Calculator {
         code.push_str("\t\t\tlet n_fwpp_loop = 1000.0 * g_fw_loop * h_fwp_loop / rho_fwp_loop; // 给水泵有效输出功率(kW)\n");
         code.push_str(&format!("\t\t\tlet n_fwpt_loop = n_fwpp_loop / ({:.4} * {:.4} * {:.4} * {:.4}); // 给水泵理论功率(kW)\n", params.n_fwpp,
             params.n_fwpti, params.n_fwptg, params.n_fwptm));
-        code.push_str(&format!(
-            "\t\t\tg_fwps_loop = n_fwpt_loop / h_a; // 给水泵汽轮机耗汽量(kg/s)\n\n"
-        ));
+        code.push_str("\t\t\tg_fwps_loop = n_fwpt_loop / h_a; // 给水泵汽轮机耗汽量(kg/s)\n\n");
 
         code.push_str("\t\t\t// 低压给水加热器抽汽量\n");
         code.push_str(&format!("\t\t\tg_les4_loop = mutable_params_g_cd * (h_fw4o - h_fw4i) / ({:.4} * (h_les4 - h_ro4k));\n", params.n_h));
@@ -1183,12 +1191,12 @@ impl Calculator {
         code.push_str(&format!("\t\t\tg_hes7_loop = (g_fw_loop * (h_fw7o - h_fw7i) - {:.4} * g_zc2_loop * (h_zs2_calc - h_ro7k)) / ({:.4} * (h_hes7 - h_ro7k));\n", params.n_h, params.n_h));
         code.push_str(&format!("\t\t\tg_hes6_loop = (g_fw_loop * (h_fw6o - h_fw6i) - {:.4} * g_zc1_loop * (h_zs1_calc - h_ro6k) - {:.4} * (g_zc2_loop + g_hes7_loop) * (h_ro7k - h_ro6k)) / ({:.4} * (h_hes6 - h_ro6k));\n\n", params.n_h, params.n_h, params.n_h));
 
-        code.push_str(&format!(
+        code.push_str(
             "\t\t\tg_uw_loop = g_sl_loop * (x_rh1i - x_spi) / x_spi; // 汽水分离器疏水流量(kg/s)\n\n"
-        ));
+        );
 
         code.push_str("\t\t\t// 除氧器耗汽量\n");
-        code.push_str(&format!("\t\t\tg_sdea_loop = (g_fw_loop * h_deao - g_uw_loop * h_uw - mutable_params_g_cd * h_fw4o - (g_zc1_loop + g_zc2_loop + g_hes6_loop + g_hes7_loop) * h_ro6k) / h_hz;\n\n"));
+        code.push_str("\t\t\tg_sdea_loop = (g_fw_loop * h_deao - g_uw_loop * h_uw - mutable_params_g_cd * h_fw4o - (g_zc1_loop + g_zc2_loop + g_hes6_loop + g_hes7_loop) * h_ro6k) / h_hz;\n\n");
 
         code.push_str("\t\t\t// 高压缸耗汽量\n");
         code.push_str(&format!("\t\t\tg_sh_loop = (0.4 * 1000.0 * ne / ({:.4} * {:.4}) + g_hes7_loop * (h_hes7 - h_hz) + g_hes6_loop * (h_hes6 - h_hz) + g_zc1_loop * (h_rh1_calc - h_hz)) / (h_hi - h_hz);\n\n", params.n_m, params.n_ge));
@@ -1566,10 +1574,12 @@ impl Calculator {
         code.push_str("\n// --- 计算结束 ---\n\n");
         code.push_str("}\n");
 
+        self.calc_code_rs = code.clone();
+
         code
     }
 
-    pub fn generate_calc_code_py(&self) -> String {
+    pub fn generate_calc_code_py(&mut self) -> String {
         let mut code = String::new();
         // 使用 self.params 来获取输入参数的实际值
         let params = &self.params;
@@ -1999,9 +2009,7 @@ impl Calculator {
         "\t\t\tn_fwpt_loop = n_fwpp_loop / ({:.4} * {:.4} * {:.4} * {:.4}) # 给水泵理论功率(kW)\n",
         params.n_fwpp, params.n_fwpti, params.n_fwptg, params.n_fwptm
     ));
-        code.push_str(&format!(
-            "\t\t\tg_fwps_loop = n_fwpt_loop / h_a# 给水泵汽轮机耗汽量(kg/s)\n\n"
-        ));
+        code.push_str("\t\t\tg_fwps_loop = n_fwpt_loop / h_a# 给水泵汽轮机耗汽量(kg/s)\n\n");
 
         code.push_str("\t\t# 低压给水加热器抽汽量\n");
         code.push_str(&format!("\t\t\tg_les4_loop = mutable_params_g_cd * (h_fw4o - h_fw4i) / ({:.4} * (h_les4 - h_ro4k));\n", params.n_h));
@@ -2027,12 +2035,12 @@ impl Calculator {
         code.push_str(&format!("\t\t\tg_hes7_loop = (g_fw_loop * (h_fw7o - h_fw7i) - {:.4} * g_zc2_loop * (h_zs2_calc - h_ro7k)) / ({:.4} * (h_hes7 - h_ro7k))\n", params.n_h, params.n_h));
         code.push_str(&format!("\t\t\tg_hes6_loop = (g_fw_loop * (h_fw6o - h_fw6i) - {:.4} * g_zc1_loop * (h_zs1_calc - h_ro6k) - {:.4} * (g_zc2_loop + g_hes7_loop) * (h_ro7k - h_ro6k)) / ({:.4} * (h_hes6 - h_ro6k))\n\n", params.n_h, params.n_h, params.n_h));
 
-        code.push_str(&format!(
-            "\t\t\tg_uw_loop = g_sl_loop * (x_rh1i - x_spi) / x_spi# 汽水分离器疏水流量(kg/s)\n\n"
-        ));
+        code.push_str(
+            "\t\t\tg_uw_loop = g_sl_loop * (x_rh1i - x_spi) / x_spi# 汽水分离器疏水流量(kg/s)\n\n",
+        );
 
         code.push_str("\t\t# 除氧器耗汽量\n");
-        code.push_str(&format!("\t\t\tg_sdea_loop = (g_fw_loop * h_deao - g_uw_loop * h_uw - mutable_params_g_cd * h_fw4o - (g_zc1_loop + g_zc2_loop + g_hes6_loop + g_hes7_loop) * h_ro6k) / h_hz\n\n"));
+        code.push_str("\t\t\tg_sdea_loop = (g_fw_loop * h_deao - g_uw_loop * h_uw - mutable_params_g_cd * h_fw4o - (g_zc1_loop + g_zc2_loop + g_hes6_loop + g_hes7_loop) * h_ro6k) / h_hz\n\n");
 
         code.push_str("\t\t# 高压缸耗汽量\n");
         code.push_str(&format!("\t\t\tg_sh_loop = (0.4 * 1000.0 * ne / ({:.4} * {:.4}) + g_hes7_loop * (h_hes7 - h_hz) + g_hes6_loop * (h_hes6 - h_hz) + g_zc1_loop * (h_rh1_calc - h_hz)) / (h_hi - h_hz)\n\n", params.n_m, params.n_ge));
@@ -2334,7 +2342,7 @@ impl Calculator {
         code.push_str("\t\tprint(f\"      出口给水温度T-fwxo(°C): {t_o:.4}\")\n");
         code.push_str("\t\tprint(f\"      疏水温度T-roxk(°C): {t_r:.4}\")\n");
         code.push_str("\t\tprint(f\"      疏水比焓h-roxk(kJ/kg): {h_r:.4}\")\n");
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("\tprint(\"\\n--- 46.高压缸抽气 ---\")\n");
         code.push_str("\tprint(f\"  46.1.高压缸进口蒸汽比熵s-hi: {s_hi:.4}\")\n");
@@ -2349,7 +2357,7 @@ impl Calculator {
         code.push_str("\t\tprint(f\"      抽汽干度X-hesx: {x_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽理想比焓h-hesxs(kJ/kg): {h_exs:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽比焓h-hesx(kJ/kg): {h_ex:.4}\")\n");
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("\tprint(\"\\n--- 47.低压缸抽气 ---\")\n");
         code.push_str("\tprint(f\"  47.1.低压缸进口蒸汽比熵s-li: {s_li:.4}\")\n");
@@ -2366,7 +2374,7 @@ impl Calculator {
         code.push_str("\t\tprint(f\"      抽汽干度X-lesx: {x_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽理想比焓h-lesxs(kJ/kg): {h_exs:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽比焓h-lesx(kJ/kg): {h_ex:.4}\")\n");
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("\tprint(\"\\n--- 48.再热器抽气 ---\")\n");
         code.push_str("\trhx_data = [\n");
@@ -2380,13 +2388,14 @@ impl Calculator {
         code.push_str("\t\tprint(f\"      加热蒸汽进口温度T-rhx(°C): {t_rhx_v:.4}\")\n");
         code.push_str("\t\tprint(f\"      加热蒸汽进口比焓h-rhx(kJ/kg): {h_rhx_v:.4}\")\n");
         code.push_str("\t\tprint(f\"      疏水比焓h-zsx(kJ/kg): {h_zsx_v:.4}\")\n");
-        code.push_str("\n");
+        code.push('\n');
 
         code.push_str("\n# --- 计算结束 ---\n\n");
-        code.push_str("\n");
+        code.push('\n');
         code.push_str("if __name__ == \"__main__\":\n");
         code.push_str("\tmain()\n");
 
+        self.calc_code_py = code.clone();
         code
     }
 }

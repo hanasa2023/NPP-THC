@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CalcInputParameters {
     // 已知条件和给定参数
     /// 核电厂输出电功率, 给定，1000(MW)
@@ -88,8 +88,8 @@ impl Display for CalcInputParameters {
     }
 }
 
-impl Default for CalcInputParameters {
-    fn default() -> Self {
+impl CalcInputParameters {
+    pub fn from_default() -> Self {
         Self {
             p_c: 15.5,
             p_s: 6.0,

@@ -7,7 +7,12 @@ edition = "2021"
 members = ["calc"]
 
 [dependencies]
-iced = { version = "0.13.1", features = ["tokio", "debug"] }
+iced = { version = "0.13.1", features = [
+  "tokio",
+  "debug",
+  "highlighter",
+  "markdown",
+] }
 iced_aw = { version = "0.12.2", default-features = false, features = [
   "menu",
   "quad",

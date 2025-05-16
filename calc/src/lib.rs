@@ -12,10 +12,10 @@ use seuif97::*;
 
 #[derive(Default)]
 pub struct Calculator {
-    params: CalcInputParameters,
-    results: CalcResultParamters,
-    calc_code_rs: String,
-    calc_code_py: String,
+    pub params: CalcInputParameters,
+    pub results: CalcResultParamters,
+    pub calc_code_rs: String,
+    pub calc_code_py: String,
 }
 
 impl Calculator {
@@ -535,6 +535,9 @@ impl Calculator {
                 },
             ],
         };
+        // 生成Python和Rust代码
+        self.calc_code_py = self.generate_calc_code_py();
+        self.calc_code_rs = self.generate_calc_code_rs();
 
         Ok(())
     }

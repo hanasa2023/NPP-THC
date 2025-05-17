@@ -694,7 +694,6 @@ impl Calculator {
         let params = &self.params;
 
         code.push_str("fn main () {\n");
-        code.push_str("\t// 根据 Calculator::calculate 方法生成的计算过程代码\n");
 
         code.push_str("\t// --- 计算开始 ---\n\n");
 
@@ -1597,7 +1596,6 @@ impl Calculator {
         code.push_str("# @Description: 核电厂热力计算程序\n");
 
         code.push_str("def main ():\n");
-        code.push_str("# 根据 Calculator::calculate 方法生成的计算过程代码\n");
 
         code.push_str("\t# --- 计算开始 ---\n\n");
 

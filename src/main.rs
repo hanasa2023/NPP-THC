@@ -19,7 +19,7 @@ use calc::parameters;
 
 use iced::{
     widget::{column as col, container, horizontal_space, row, text},
-    Alignment, Element, Length, Padding, Settings, Task, Theme,
+    window, Alignment, Element, Length, Padding, Settings, Task, Theme,
 };
 use iced_aw::{
     menu::{Item, Menu},
@@ -31,9 +31,14 @@ fn main() -> iced::Result {
         default_font: MISANS_FONT,
         ..Settings::default()
     };
+    let window_icon = window::icon::from_file("../assets/logo.png").ok();
     iced::application(App::get_title, App::update, App::view)
         .theme(App::get_theme)
         .settings(settings)
+        .window(window::Settings {
+            icon: window_icon,
+            ..window::Settings::default()
+        })
         .run_with(App::new)
 }
 

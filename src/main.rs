@@ -1,5 +1,6 @@
 mod common;
 mod components;
+mod config;
 mod npp_tabs;
 
 use npp_tabs::{
@@ -14,6 +15,8 @@ use common::{
 };
 
 use components::labeled_button;
+
+use config::AppConfig;
 
 use calc::parameters;
 
@@ -53,9 +56,9 @@ enum TabId {
 struct App {
     app_name: String,
     theme: Theme,
+    config: AppConfig,
     status: String,
     pending_action: Option<PendingAction>,
-    output_dir: String,
     caculator: calc::Calculator,
     active_tab: TabId,
     input_tab: InputTab,
@@ -95,12 +98,20 @@ enum PendingAction {
 
 impl App {
     fn new() -> (Self, Task<Message>) {
+        let config = AppConfig::from_file("config.json").unwrap_or_default();
+        let theme = match config.theme.as_str() {
+            "CatppuccinLatte" => Theme::CatppuccinLatte,
+            "TokyoNightLight" => Theme::TokyoNightLight,
+            "CatppuccinMocha" => Theme::CatppuccinMocha,
+            "TokyoNightStorm" => Theme::TokyoNightStorm,
+            _ => Theme::CatppuccinMocha,
+        };
         let app = Self {
             app_name: String::from("核电厂热力计算程序"),
-            theme: Theme::CatppuccinMocha,
+            theme,
+            config,
             status: String::new(),
             pending_action: None,
-            output_dir: String::new(),
             caculator: calc::Calculator::default(),
             active_tab: TabId::Input,
             input_tab: InputTab::default(),
@@ -146,11 +157,14 @@ impl App {
                 Task::none()
             }
             Message::SaveInputParams => {
-                if self.output_dir.is_empty() {
+                if self.config.output_path.is_empty() {
                     self.pending_action = Some(PendingAction::InputParams);
                     return Task::perform(helpers::select_output_dir(), Message::SelectedOutputDir);
                 }
-                match self.caculator.save_parameters_to_file(&self.output_dir) {
+                match self
+                    .caculator
+                    .save_parameters_to_file(&self.config.output_path)
+                {
                     Ok(_) => self.status = "保存输入参数成功".to_string(),
                     Err(error) => self.status = format!("保存输入参数失败{error}"),
                 }
@@ -162,12 +176,16 @@ impl App {
             Message::SelectedOutputDir(result) => {
                 match result {
                     Ok(path) => {
-                        self.output_dir = path.clone();
+                        self.config.output_path = path.clone();
+                        self.config.to_file("config.json").unwrap();
                         if let Some(action) = self.pending_action.clone() {
                             match action {
                                 PendingAction::InputParams => {
                                     self.pending_action = None;
-                                    match self.caculator.save_parameters_to_file(&self.output_dir) {
+                                    match self
+                                        .caculator
+                                        .save_parameters_to_file(&self.config.output_path)
+                                    {
                                         Ok(_) => self.status = "保存输入参数成功".to_string(),
                                         Err(error) => {
                                             self.status = format!("保存输入参数失败{error}")
@@ -176,7 +194,10 @@ impl App {
                                 }
                                 PendingAction::Result => {
                                     self.pending_action = None;
-                                    match self.caculator.save_results_to_file(&self.output_dir) {
+                                    match self
+                                        .caculator
+                                        .save_results_to_file(&self.config.output_path)
+                                    {
                                         Ok(_) => self.status = "保存计算结果成功".to_string(),
                                         Err(error) => {
                                             self.status = format!("保存计算结果失败{error}")
@@ -185,7 +206,8 @@ impl App {
                                 }
                                 PendingAction::CalcCode => {
                                     self.pending_action = None;
-                                    match self.caculator.save_code_to_file(&self.output_dir) {
+                                    match self.caculator.save_code_to_file(&self.config.output_path)
+                                    {
                                         Ok(_) => self.status = "保存计算代码成功".to_string(),
                                         Err(error) => {
                                             self.status = format!("保存计算代码失败{error}")
@@ -218,22 +240,25 @@ impl App {
                 Task::none()
             }
             Message::SaveResult => {
-                if self.output_dir.is_empty() {
+                if self.config.output_path.is_empty() {
                     self.pending_action = Some(PendingAction::Result);
                     return Task::perform(helpers::select_output_dir(), Message::SelectedOutputDir);
                 }
-                match self.caculator.save_results_to_file(&self.output_dir) {
+                match self
+                    .caculator
+                    .save_results_to_file(&self.config.output_path)
+                {
                     Ok(_) => self.status = "保存计算结果成功".to_string(),
                     Err(error) => self.status = format!("保存计算结果失败{error}"),
                 }
                 Task::none()
             }
             Message::SaveCalcCode => {
-                if self.output_dir.is_empty() {
+                if self.config.output_path.is_empty() {
                     self.pending_action = Some(PendingAction::CalcCode);
                     return Task::perform(helpers::select_output_dir(), Message::SelectedOutputDir);
                 }
-                match self.caculator.save_code_to_file(&self.output_dir) {
+                match self.caculator.save_code_to_file(&self.config.output_path) {
                     Ok(_) => self.status = String::from("保存计算代码成功"),
                     Err(error) => self.status = format!("保存计算代码失败{error}"),
                 }
@@ -259,7 +284,15 @@ impl App {
                 Task::none()
             }
             Message::ThemeSelect(theme) => {
+                self.config.theme = match theme.clone() {
+                    Theme::CatppuccinLatte => "CatppuccinLatte".to_string(),
+                    Theme::TokyoNightLight => "TokyoNightLight".to_string(),
+                    Theme::CatppuccinMocha => "CatppuccinMocha".to_string(),
+                    Theme::TokyoNightStorm => "TokyoNightStorm".to_string(),
+                    _ => "CatppuccinMocha".to_string(),
+                };
                 self.theme = theme;
+                self.config.to_file("config.json").unwrap();
                 Task::none()
             }
             Message::OpenHelpDialog => {
@@ -345,10 +378,10 @@ impl App {
 
         let content = container(ts).center(Length::Fill);
 
-        let output_dir_status = if self.output_dir.is_empty() {
+        let output_dir_status = if self.config.output_path.is_empty() {
             "未选择".to_string()
         } else {
-            self.output_dir.clone()
+            self.config.output_path.clone()
         };
 
         let status = row![

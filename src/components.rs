@@ -1,7 +1,7 @@
 use crate::common::theme::background_button_style;
 use iced::{
     alignment, padding,
-    widget::{button, container, row, text, text_input},
+    widget::{button, center, container, mouse_area, opaque, row, stack, text, text_input},
     Element, Length, Renderer, Theme,
 };
 
@@ -35,4 +35,19 @@ where
     button(text(label).center())
         .style(background_button_style)
         .on_press(msg)
+}
+
+pub fn modal<'a, Message>(
+    base: impl Into<Element<'a, Message>>,
+    content: impl Into<Element<'a, Message>>,
+    on_blur: Message,
+) -> Element<'a, Message>
+where
+    Message: Clone + 'a,
+{
+    stack![
+        base.into(),
+        opaque(mouse_area(center(opaque(content))).on_press(on_blur))
+    ]
+    .into()
 }

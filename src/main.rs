@@ -14,7 +14,7 @@ use common::{
     theme::{MISANS_FONT, TAB_PADDING},
 };
 
-use components::labeled_button;
+use components::{labeled_button, modal};
 
 use config::AppConfig;
 
@@ -64,6 +64,7 @@ struct App {
     input_tab: InputTab,
     result_tab: ResultTab,
     calc_code_tab: CalcCodeTab,
+    show_help_dialog: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +83,7 @@ enum Message {
     Calculate,
     ThemeSelect(Theme),
     OpenHelpDialog,
+    HideHelpDialog,
     // Tab消息
     TabSelected(TabId),
     InputTab(InputTabMessage),
@@ -117,6 +119,7 @@ impl App {
             input_tab: InputTab::default(),
             result_tab: ResultTab::default(),
             calc_code_tab: CalcCodeTab::new(true),
+            show_help_dialog: false,
         };
         let command = Task::batch(vec![iced::font::load(
             include_bytes!("../fonts/MiSans VF.ttf").as_slice(),
@@ -296,7 +299,11 @@ impl App {
                 Task::none()
             }
             Message::OpenHelpDialog => {
-                // TODO: 打开帮助对话框
+                self.show_help_dialog = true;
+                Task::none()
+            }
+            Message::HideHelpDialog => {
+                self.show_help_dialog = false;
                 Task::none()
             }
             // Tab消息
@@ -393,7 +400,62 @@ impl App {
 
         let v = col![menubar, content, status];
 
-        v.into()
+        if self.show_help_dialog {
+            let app_name_text = text(&self.app_name).size(24);
+            let version_text = text(format!("版本: {}", env!("CARGO_PKG_VERSION"))).size(16); // 从 Cargo.toml 获取版本
+            let description_text = text(
+                "本项目是一个基于 Rust 和 Iced 构建的核电厂热力循环计算桌面应用程序。 \
+                它允许用户输入详细的运行参数，执行热力计算，查看计算结果，并能生成相应的计算过程代码。"
+            )
+            .width(Length::Fill); // 允许文本换行
+
+            let features_title = text("主要功能:").size(18);
+            let features_list = col![
+                text("- 参数输入、加载、保存与清空"),
+                text("- 热力循环计算"),
+                text("- 计算结果展示与保存"),
+                text("- 计算过程代码生成 (Rust & Python) 与保存"),
+                text("- 多主题选择"),
+                text("- 输出目录选择与配置保存")
+            ]
+            .spacing(5);
+
+            let usage_title = text("简要说明:").size(18);
+            let usage_list = col![
+                text("1. 在“输入参数”页输入或加载参数。"),
+                text("2. 通过“文件”菜单选择输出目录。"),
+                text("3. 点击“计算”菜单中的“开始计算”。"),
+                text("4. 在“计算结果”和“计算代码”页查看详情。"),
+                text("5. 使用菜单栏进行参数、结果、代码的保存。")
+            ]
+            .spacing(5);
+
+            let author_text = text("灵感来源: euaurora/curriculum-design2").size(14);
+            let github_link_text = text("项目地址: https://github.com/hanasa2023/NPP-THC") // 替换为您的实际链接
+                .size(14);
+
+            let help_column = col![
+                app_name_text,
+                version_text,
+                description_text,
+                features_title,
+                features_list,
+                usage_title,
+                usage_list,
+                author_text,
+                github_link_text,
+            ]
+            .spacing(15)
+            .align_x(Alignment::Start) // 内容左对齐
+            .padding(20);
+
+            let help_content_styled = container(help_column)
+                .width(450) // 调整宽度以适应更多内容
+                .style(container::rounded_box);
+            modal(v, help_content_styled, Message::HideHelpDialog)
+        } else {
+            v.into()
+        }
     }
 
     fn get_theme(&self) -> Theme {

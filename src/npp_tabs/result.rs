@@ -18,6 +18,7 @@ pub enum ResultMessage {
 
 #[derive(Default)]
 pub struct ResultTab {
+    theme: Theme,
     result_markdown: Vec<markdown::Item>,
 }
 
@@ -46,7 +47,7 @@ impl Tab for ResultTab {
         let md_view = markdown::view(
             &self.result_markdown,
             markdown::Settings::default(),
-            markdown::Style::from_palette(Theme::CatppuccinMocha.palette()),
+            markdown::Style::from_palette(self.theme.palette()),
         )
         .map(ResultMessage::LinkClicked);
 

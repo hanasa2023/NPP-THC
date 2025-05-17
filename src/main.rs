@@ -72,7 +72,7 @@ enum Message {
     SaveResult,
     SaveCalcCode,
     Calculate,
-
+    ThemeSelect(Theme),
     OpenHelpDialog,
     // Tab消息
     TabSelected(TabId),
@@ -253,6 +253,10 @@ impl App {
                 }
                 Task::none()
             }
+            Message::ThemeSelect(theme) => {
+                self.theme = theme;
+                Task::none()
+            }
             Message::OpenHelpDialog => {
                 // TODO: 打开帮助对话框
                 Task::none()
@@ -297,6 +301,14 @@ impl App {
                     (labeled_button("保存计算结果", Message::SaveResult).width(Length::Fill))
                     (labeled_button("保存计算代码", Message::SaveCalcCode).width(Length::Fill))
                     (labeled_button("开始计算", Message::Calculate).width(Length::Fill))
+                )).max_width(180.0)
+            })
+            (labeled_button("主题", Message::OpenSubMenu).width(Length::Shrink), {
+                Menu::new(menu_items!(
+                    (labeled_button("CatppuccinLatte", Message::ThemeSelect(Theme::CatppuccinLatte)).width(Length::Fill))
+                    (labeled_button("TokyoNightLight", Message::ThemeSelect(Theme::TokyoNightLight)).width(Length::Fill))
+                    (labeled_button("CatppuccinMocha", Message::ThemeSelect(Theme::CatppuccinMocha)).width(Length::Fill))
+                    (labeled_button("TokyoNightStorm", Message::ThemeSelect(Theme::TokyoNightStorm)).width(Length::Fill))
                 )).max_width(180.0)
             })
             (labeled_button("帮助", Message::OpenSubMenu).width(Length::Shrink), {

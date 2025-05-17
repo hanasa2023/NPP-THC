@@ -66,7 +66,7 @@ impl Tab for CalcCodeTab {
             .highlight(
                 "py",
                 if self.is_dark {
-                    highlighter::Theme::Base16Mocha
+                    highlighter::Theme::Base16Eighties
                 } else {
                     highlighter::Theme::InspiredGitHub
                 },
@@ -81,7 +81,7 @@ impl Tab for CalcCodeTab {
             .highlight(
                 "rs",
                 if self.is_dark {
-                    highlighter::Theme::Base16Mocha
+                    highlighter::Theme::Base16Eighties
                 } else {
                     highlighter::Theme::InspiredGitHub
                 },

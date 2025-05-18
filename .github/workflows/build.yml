@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*" # 仅在版本标签上触发
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -83,7 +85,7 @@ jobs:
           mv artifacts/app-linux/NPP-THC release_assets/NPP-THC-linux
           mv artifacts/app-macos/NPP-THC release_assets/NPP-THC-macos
           mv artifacts/app-windows/NPP-THC.exe release_assets/NPP-THC-windows.exe
-          
+
           echo "Prepared assets in release_assets:"
           ls -R release_assets
 
@@ -93,3 +95,4 @@ jobs:
           artifacts: "release_assets/*" # 上传 release_assets 目录下的所有文件
           token: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN 会被自动提供
           name: NPP-THC ${{ github.ref_name }} # 可以自定义 Release 的名称
+

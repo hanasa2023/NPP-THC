@@ -55,6 +55,7 @@ fn format_hes_params(params: &[CalcHESParameters], title: &str, markdown: &mut S
         markdown.push_str(&format!("#### {}\n\n", title));
         for (i, p) in params.iter().enumerate() {
             markdown.push_str(&format!("  - **参数组 {}**\n", i + 1));
+            markdown.push_str(&format!("    - 抽汽温度 (p_hesx): {}\n", fmt_f64(p.t_hesx)));
             markdown.push_str(&format!("    - 抽汽压力 (p_hesx): {}\n", fmt_f64(p.p_hesx)));
             markdown.push_str(&format!("    - 抽汽干度 (X_hesx): {}\n", fmt_f64(p.x_hesx)));
             markdown.push_str(&format!(

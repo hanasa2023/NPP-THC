@@ -163,26 +163,31 @@ impl Calculator {
 
         // 高压缸抽汽
         // 六级给水加热器抽气参数
-        let (p_hes6, h_hes6s, h_hes6, x_hes6) = self.calc_esx(p_ro6k, s_hi, h_hi, true);
+        let (p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6) =
+            self.calc_esx(t_fw6o, p_ro6k, s_hi, h_hi, true);
         // 七级给水加热器抽气参数
-        let (p_hes7, h_hes7s, h_hes7, x_hes7) = self.calc_esx(p_ro7k, s_hi, h_hi, true);
+        let (p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7) =
+            self.calc_esx(t_fw7o, p_ro7k, s_hi, h_hi, true);
 
         // 低压缸抽汽
         // 一级给水加热器抽汽参数
-        let (p_les1, h_les1s, h_les1, x_les1) = self.calc_esx(p_ro1k, s_li, h_li, false);
+        let (p_les1, h_les1s, h_les1, x_les1, t_les1) =
+            self.calc_esx(t_fw1o, p_ro1k, s_li, h_li, false);
         // 二级给水加热器抽汽参数
-        let (p_les2, h_les2s, h_les2, x_les2) = self.calc_esx(p_ro2k, s_li, h_li, false);
+        let (p_les2, h_les2s, h_les2, x_les2, t_les2) =
+            self.calc_esx(t_fw2o, p_ro2k, s_li, h_li, false);
         // 三级给水加热器抽汽参数
-        let (p_les3, h_les3s, h_les3, x_les3) = self.calc_esx(p_ro3k, s_li, h_li, false);
+        let (p_les3, h_les3s, h_les3, x_les3, t_les3) =
+            self.calc_esx(t_fw3o, p_ro3k, s_li, h_li, false);
         // 四级给水加热器抽汽参数
-        let (p_les4, h_les4s, h_les4, x_les4) = self.calc_esx(p_ro4k, s_li, h_li, false);
+        let (p_les4, h_les4s, h_les4, x_les4, t_les4) =
+            self.calc_esx(t_fw4o, p_ro4k, s_li, h_li, false);
 
         // 再热器抽汽
         // 一级再热器抽汽参数
         let (p_rh1, x_rh1, t_rh1, h_rh1, h_zs1) = self.calc_rhx(p_hes7, x_hes7);
         // 二级再热器抽汽参数
         let (p_rh2, x_rh2, t_rh2, h_rh2, h_zs2) = self.calc_rhx(p_hi, x_hi);
-
         // 蒸汽发生器总蒸汽产量的计算
         let h_a = h_hi - h_hz; // 给水泵汽轮机中蒸汽的绝热焓降
         loop {
@@ -208,77 +213,76 @@ impl Calculator {
                 mut g_uw,
                 mut g_sdea,
             );
-            loop {
-                let n_fwpp = 1000.0 * g_fw * h_fwp / rho_fwp; // 给水泵有效输出功率(kW)
-                let n_fwpt = n_fwpp
-                    / (self.params.n_fwpp
-                        * self.params.n_fwpti
-                        * self.params.n_fwptm
-                        * self.params.n_fwptg); // 给水泵理论功率(kW)
-                g_fwps = n_fwpt / h_a; // 给水泵汽轮机耗汽量(kg/s)
-                // 低压给水加热器抽汽量
-                g_les4 =
-                    self.params.g_cd * (h_fw4o - h_fw4i) / (self.params.n_h * (h_les4 - h_ro4k)); // 第四级抽汽量
-                g_les3 = (self.params.g_cd * (h_fw3o - h_fw3i)
-                    - self.params.n_h * g_les4 * (h_ro4k - h_ro3k))
-                    / (self.params.n_h * (h_les3 - h_ro3k)); // 第三级抽汽量
-                g_les2 = (self.params.g_cd * (h_fw2o - h_fw2i)
-                    - self.params.n_h * (g_les3 + g_les4) * (h_ro3k - h_ro2k))
-                    / (self.params.n_h * (h_les2 - h_ro2k)); // 第二级抽汽量
-                g_les1 = (self.params.g_cd * (h_fw1o - h_fw1i)
-                    - self.params.n_h * (g_les2 + g_les3 + g_les4) * (h_ro2k - h_ro1k))
-                    / (self.params.n_h * (h_les1 - h_ro1k)); // 第一级抽汽量
-                // g_sl = self.params.g_cd - self.params.zeta_d * d_s - g_fwps; // 低压缸耗气量
-                g_sl = (0.6 * 1000.0 * self.params.ne / (self.params.n_m * self.params.n_ge)
-                    + g_les4 * (h_les4 - h_lz)
-                    + g_les3 * (h_les3 - h_lz)
-                    + g_les2 * (h_les2 - h_lz)
-                    + g_les1 * (h_les1 - h_lz))
-                    / (h_li - h_lz); // 低压缸耗气量(kg/s)
-                // 再热器加热蒸汽量
-                g_zc1 = g_sl * dh_rh / (self.params.n_h * (h_rh1 - h_zs1));
-                g_zc2 = g_sl * dh_rh / (self.params.n_h * (h_rh2 - h_zs2));
-                // 高压给水加热器抽汽量
-                g_hes7 = (g_fw * (h_fw7o - h_fw7i) - self.params.n_h * g_zc2 * (h_zs2 - h_ro7k))
-                    / (self.params.n_h * (h_hes7 - h_ro7k));
-                g_hes6 = (g_fw * (h_fw6o - h_fw6i)
-                    - self.params.n_h * g_zc1 * (h_zs1 - h_ro6k)
-                    - self.params.n_h * (g_zc2 + g_hes7) * (h_ro7k - h_ro6k))
-                    / (self.params.n_h * (h_hes6 - h_ro6k));
-                g_uw = g_sl * (x_rh1i - x_spi) / x_spi; // 汽水分离器疏水流量(kg/s)
-                // let g_h1 = g_sl + g_uw;
-                // 除氧器耗汽量
-                g_sdea = (g_fw * h_deao
+            // loop {
+            let n_fwpp = 1000.0 * g_fw * h_fwp / rho_fwp; // 给水泵有效输出功率(kW)
+            let n_fwpt = n_fwpp
+                / (self.params.n_fwpp
+                    * self.params.n_fwpti
+                    * self.params.n_fwptm
+                    * self.params.n_fwptg); // 给水泵理论功率(kW)
+            g_fwps = n_fwpt / h_a; // 给水泵汽轮机耗汽量(kg/s)
+            // 低压给水加热器抽汽量
+            g_les4 = self.params.g_cd * (h_fw4o - h_fw4i) / (self.params.n_h * (h_les4 - h_ro4k)); // 第四级抽汽量
+            g_les3 = (self.params.g_cd * (h_fw3o - h_fw3i)
+                - self.params.n_h * g_les4 * (h_ro4k - h_ro3k))
+                / (self.params.n_h * (h_les3 - h_ro3k)); // 第三级抽汽量
+            g_les2 = (self.params.g_cd * (h_fw2o - h_fw2i)
+                - self.params.n_h * (g_les3 + g_les4) * (h_ro3k - h_ro2k))
+                / (self.params.n_h * (h_les2 - h_ro2k)); // 第二级抽汽量
+            g_les1 = (self.params.g_cd * (h_fw1o - h_fw1i)
+                - self.params.n_h * (g_les2 + g_les3 + g_les4) * (h_ro2k - h_ro1k))
+                / (self.params.n_h * (h_les1 - h_ro1k)); // 第一级抽汽量
+            g_sl = self.params.g_cd - self.params.zeta_d * d_s - g_fwps; // 低压缸耗气量
+            // g_sl = (0.6 * 1000.0 * self.params.ne / (self.params.n_m * self.params.n_ge)
+            //     + g_les4 * (h_les4 - h_lz)
+            //     + g_les3 * (h_les3 - h_lz)
+            //     + g_les2 * (h_les2 - h_lz)
+            //     + g_les1 * (h_les1 - h_lz))
+            //     / (h_li - h_lz); // 低压缸耗气量(kg/s)
+            // 再热器加热蒸汽量
+            g_zc1 = g_sl * dh_rh / (self.params.n_h * (h_rh1 - h_zs1));
+            g_zc2 = g_sl * dh_rh / (self.params.n_h * (h_rh2 - h_zs2));
+            // 高压给水加热器抽汽量
+            g_hes7 = (g_fw * (h_fw7o - h_fw7i) - self.params.n_h * g_zc2 * (h_zs2 - h_ro7k))
+                / (self.params.n_h * (h_hes7 - h_ro7k));
+            g_hes6 = (g_fw * (h_fw6o - h_fw6i)
+                - self.params.n_h * g_zc1 * (h_zs1 - h_ro6k)
+                - self.params.n_h * (g_zc2 + g_hes7) * (h_ro7k - h_ro6k))
+                / (self.params.n_h * (h_hes6 - h_ro6k));
+            g_uw = g_sl * (x_rh1i - x_spi) / x_spi; // 汽水分离器疏水流量(kg/s)
+            // let g_h1 = g_sl + g_uw;
+            // 除氧器耗汽量
+            g_sdea = (g_fw * h_deao
                     - g_uw * h_uw // h_psi???
                     - self.params.g_cd * h_fw4o
                     - (g_zc1 + g_zc2 + g_hes6 + g_hes7) * h_ro6k)
-                    / h_hz;
-                // let g_t = g_sdea + g_sl * x_rh1i / x_hz; // 高压缸出口排气总流量
-                // 高压缸耗汽量
-                g_sh = (0.4 * 1000.0 * self.params.ne / (self.params.n_m * self.params.n_ge)
-                    + g_hes7 * (h_hes7 - h_hz)
-                    + g_hes6 * (h_hes6 - h_hz)
-                    + g_zc1 * (h_rh1 - h_hz))
-                    / (h_hi - h_hz);
-                // g_sh = ((0.4 * self.params.ne / (self.params.n_m * self.params.n_ge)
-                //     - g_hes6 * (h_hi - h_hes6)
-                //     - g_hes7 * (h_hi - h_hes7)
-                //     - g_zc1 * (h_hi - h_rh1))
-                //     / (h_hi - h_hz))
-                //     + g_hes6
-                //     + g_hes7
-                //     + g_zc1;
-                // 对假设冷凝水流量验证
-                d_s = g_fwps + g_zc2 + g_sh; // 新蒸汽耗量
-                let g_fw1 = (1.0 + self.params.zeta_d) * d_s; // 给水流量
-                let g_cd1 = g_fw1 - g_sdea - g_uw - (g_hes6 + g_hes7 + g_zc1 + g_zc2);
-                if (g_cd1 - self.params.g_cd).abs() / self.params.g_cd < 1e-2 {
-                    break;
-                } else {
-                    self.params.g_cd = g_cd1;
-                    g_fw = g_fw1;
-                }
-            }
+                / h_hz;
+            // let g_t = g_sdea + g_sl * x_rh1i / x_hz; // 高压缸出口排气总流量
+            // 高压缸耗汽量
+            g_sh = (0.4 * 1000.0 * self.params.ne / (self.params.n_m * self.params.n_ge)
+                + g_hes7 * (h_hes7 - h_hz)
+                + g_hes6 * (h_hes6 - h_hz)
+                + g_zc1 * (h_rh1 - h_hz))
+                / (h_hi - h_hz);
+            // g_sh = ((0.4 * self.params.ne / (self.params.n_m * self.params.n_ge)
+            //     - g_hes6 * (h_hi - h_hes6)
+            //     - g_hes7 * (h_hi - h_hes7)
+            //     - g_zc1 * (h_hi - h_rh1))
+            //     / (h_hi - h_hz))
+            //     + g_hes6
+            //     + g_hes7
+            //     + g_zc1;
+            // 对假设冷凝水流量验证
+            d_s = g_fwps + g_zc2 + g_sh; // 新蒸汽耗量
+            let g_fw1 = (1.0 + self.params.zeta_d) * d_s; // 给水流量
+            let g_cd1 = g_fw1 - g_sdea - g_uw - (g_hes6 + g_hes7 + g_zc1 + g_zc2);
+            // if (g_cd1 - self.params.g_cd).abs() / self.params.g_cd < 1e-2 {
+            //     break;
+            // } else {
+            //     self.params.g_cd = g_cd1;
+            //     g_fw = g_fw1;
+            // }
+            // }
             q_r = (d_s * (h_fh - h_fw) + self.params.zeta_d * d_s * (h_s - h_fw))
                 / (1000.0 * self.params.n_1); // 新反应堆热功率(MW)
             let n_ennp1 = self.params.ne / q_r;
@@ -305,10 +309,13 @@ impl Calculator {
                 g_zc1,
                 g_zc2,
             });
-            if (n_ennp1 - self.params.ne_npp).abs() < 1e-3 {
+            if (g_cd1 - self.params.g_cd).abs() / self.params.g_cd < 1e-2
+                && (n_ennp1 - self.params.ne_npp).abs() < 1e-3
+            {
                 break;
             } else {
                 self.params.ne_npp = n_ennp1;
+                self.params.g_cd = g_cd1;
             }
         }
 
@@ -482,12 +489,14 @@ impl Calculator {
                     x_hesx: x_hes6,
                     h_hesxs: h_hes6s,
                     h_hesx: h_hes6,
+                    t_hesx: t_hes6,
                 },
                 CalcHESParameters {
                     p_hesx: p_hes7,
                     x_hesx: x_hes7,
                     h_hesxs: h_hes7s,
                     h_hesx: h_hes7,
+                    t_hesx: t_hes7,
                 },
             ],
             s_li1: s_li,
@@ -498,24 +507,28 @@ impl Calculator {
                     x_hesx: x_les1,
                     h_hesxs: h_les1s,
                     h_hesx: h_les1,
+                    t_hesx: t_les1,
                 },
                 CalcHESParameters {
                     p_hesx: p_les2,
                     x_hesx: x_les2,
                     h_hesxs: h_les2s,
                     h_hesx: h_les2,
+                    t_hesx: t_les2,
                 },
                 CalcHESParameters {
                     p_hesx: p_les3,
                     x_hesx: x_les3,
                     h_hesxs: h_les3s,
                     h_hesx: h_les3,
+                    t_hesx: t_les3,
                 },
                 CalcHESParameters {
                     p_hesx: p_les4,
                     x_hesx: x_les4,
                     h_hesxs: h_les4s,
                     h_hesx: h_les4,
+                    t_hesx: t_les4,
                 },
             ],
             rhx: vec![
@@ -610,14 +623,29 @@ impl Calculator {
     ///
     /// # Arguments
     ///
+    /// * `t_fwxo` - 出口给水温度
+    ///
     /// * `p_roxk` - 汽侧疏水压力
     ///
     /// * `s_i` - 进口蒸汽比熵
     ///
     /// * `h_i` - 进口进气比焓
-    fn calc_esx(&self, p_roxk: f64, s_i: f64, h_i: f64, is_h: bool) -> (f64, f64, f64, f64) {
-        // TODO: 验证合理性
-        let p_esx = p_roxk / (1.0 - self.params.dp_ej); // 抽气压力
+    // TODO: 移除`_p_roxk`
+    fn calc_esx(
+        &self,
+        t_fwxo: f64,
+        _p_roxk: f64,
+        s_i: f64,
+        h_i: f64,
+        is_h: bool,
+    ) -> (f64, f64, f64, f64, f64) {
+        let t_esx = t_fwxo
+            + if is_h {
+                self.params.theta_hu
+            } else {
+                self.params.theta_lu
+            }; // 抽汽温度
+        let p_esx = tx(t_esx, 1.0, OP) / (1.0 - self.params.dp_ej);
         let h_esxs = ps(p_esx, s_i, OH); // 抽气理想比焓
         let h_esx = h_i
             - if is_h {
@@ -626,7 +654,7 @@ impl Calculator {
                 self.params.n_li
             } * (h_i - h_esxs); // 抽气比焓
         let x_esx = ph(p_esx, h_esx, OX); // 抽气干度
-        (p_esx, h_esxs, h_esx, x_esx)
+        (p_esx, h_esxs, h_esx, x_esx, t_esx)
     }
 
     /// 计算再热器抽汽参数
@@ -688,6 +716,7 @@ impl Calculator {
     }
 
     /// 生成计算代码
+    // TODO: 更新生成的rs代码
     pub fn generate_calc_code_rs(&mut self) -> String {
         let mut code = String::new();
         // 使用 self.params 来获取输入参数的实际值
@@ -1078,37 +1107,43 @@ impl Calculator {
         p_fw7i, h_fw7i, t_fw7i, p_fw7o, h_fw7o, t_fw7o, t_ro7k, h_ro7k, p_ro7k));
 
         code.push_str("\t// 高压缸抽汽\n");
-        let (p_hes6, h_hes6s, h_hes6, x_hes6) = self.calc_esx(p_ro6k, s_hi, h_hi, true);
+        let (p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6) =
+            self.calc_esx(t_fw6o, p_ro6k, s_hi, h_hi, true);
         code.push_str(&format!(
-            "\tlet (p_hes6, h_hes6s, h_hes6, x_hes6) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_hes6, h_hes6s, h_hes6, x_hes6
+            "\tlet (p_hes6, h_hes6s, h_hes6, x_hes6, t_hes7) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6
         ));
-        let (p_hes7, h_hes7s, h_hes7, x_hes7) = self.calc_esx(p_ro7k, s_hi, h_hi, true);
+        let (p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7) =
+            self.calc_esx(t_fw7o, p_ro7k, s_hi, h_hi, true);
         code.push_str(&format!(
-            "\tlet (p_hes7, h_hes7s, h_hes7, x_hes7) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_hes7, h_hes7s, h_hes7, x_hes7
+            "\tlet (p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7
         ));
 
         code.push_str("\t// 低压缸抽汽\n");
-        let (p_les1, h_les1s, h_les1, x_les1) = self.calc_esx(p_ro1k, s_li, h_li, false);
+        let (p_les1, h_les1s, h_les1, x_les1, t_les1) =
+            self.calc_esx(t_fw1o, p_ro1k, s_li, h_li, false);
         code.push_str(&format!(
-            "\tlet (p_les1, h_les1s, h_les1, x_les1) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_les1, h_les1s, h_les1, x_les1
+            "\tlet (p_les1, h_les1s, h_les1, x_les1, t_les1) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_les1, h_les1s, h_les1, x_les1, t_les1
         ));
-        let (p_les2, h_les2s, h_les2, x_les2) = self.calc_esx(p_ro2k, s_li, h_li, false);
+        let (p_les2, h_les2s, h_les2, x_les2, t_les2) =
+            self.calc_esx(t_fw2o, p_ro2k, s_li, h_li, false);
         code.push_str(&format!(
-            "\tlet (p_les2, h_les2s, h_les2, x_les2) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_les2, h_les2s, h_les2, x_les2
+            "\tlet (p_les2, h_les2s, h_les2, x_les2, t_les2) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_les2, h_les2s, h_les2, x_les2, t_les2
         ));
-        let (p_les3, h_les3s, h_les3, x_les3) = self.calc_esx(p_ro3k, s_li, h_li, false);
+        let (p_les3, h_les3s, h_les3, x_les3, t_les3) =
+            self.calc_esx(t_fw3o, p_ro3k, s_li, h_li, false);
         code.push_str(&format!(
-            "\tlet (p_les3, h_les3s, h_les3, x_les3) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_les3, h_les3s, h_les3, x_les3
+            "\tlet (p_les3, h_les3s, h_les3, x_les3, t_les4) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_les3, h_les3s, h_les3, x_les3,t_les3
         ));
-        let (p_les4, h_les4s, h_les4, x_les4) = self.calc_esx(p_ro4k, s_li, h_li, false);
+        let (p_les4, h_les4s, h_les4, x_les4, t_les4) =
+            self.calc_esx(t_fw4o, p_ro4k, s_li, h_li, false);
         code.push_str(&format!(
-            "\tlet (p_les4, h_les4s, h_les4, x_les4) = ({:.4}, {:.4}, {:.4}, {:.4});\n",
-            p_les4, h_les4s, h_les4, x_les4
+            "\tlet (p_les4, h_les4s, h_les4, x_les4, t_les4) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4});\n",
+            p_les4, h_les4s, h_les4, x_les4,t_les4
         ));
 
         code.push_str("\t// 再热器抽汽\n");
@@ -1529,11 +1564,12 @@ impl Calculator {
         code.push_str("\tprintln!(\"  46.1.高压缸进口蒸汽比熵s-hi: {:.4}\", s_hi);\n");
         code.push_str("\tprintln!(\"  46.2.高压缸进口蒸汽比焓h-hi(kJ/kg): {:.4}\", h_hi);\n");
         code.push_str("\tlet hhes_data = [\n");
-        code.push_str("\t\t(6, p_hes6, h_hes6s, h_hes6, x_hes6),\n");
-        code.push_str("\t\t(7, p_hes7, h_hes7s, h_hes7, x_hes7),\n");
+        code.push_str("\t\t(6, p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6),\n");
+        code.push_str("\t\t(7, p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7),\n");
         code.push_str("\t];\n");
-        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex) in hhes_data.iter() {\n");
+        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex, t_ex) in hhes_data.iter() {\n");
         code.push_str("\t\tprintln!(\"    --- {}号高压抽汽参数 ---\", level);\n");
+        code.push_str("\t\tprintln!(\"      抽汽温度t-hesx(°C): {:.4}\", t_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽压力p-hesx(MPa): {:.4}\", p_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽干度X-hesx: {:.4}\", x_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽理想比焓h-hesxs(kJ/kg): {:.4}\", h_exs);\n");
@@ -1544,13 +1580,14 @@ impl Calculator {
         code.push_str("\tprintln!(\"  47.1.低压缸进口蒸汽比熵s-li: {:.4}\", s_li);\n");
         code.push_str("\tprintln!(\"  47.2.低压缸进口蒸汽比焓h-li(kJ/kg): {:.4}\", h_li);\n");
         code.push_str("\tlet lhes_data = [\n");
-        code.push_str("\t\t(1, p_les1, h_les1s, h_les1, x_les1),\n");
-        code.push_str("\t\t(2, p_les2, h_les2s, h_les2, x_les2),\n");
-        code.push_str("\t\t(3, p_les3, h_les3s, h_les3, x_les3),\n");
-        code.push_str("\t\t(4, p_les4, h_les4s, h_les4, x_les4),\n");
+        code.push_str("\t\t(1, p_les1, h_les1s, h_les1, x_les1, t_les1),\n");
+        code.push_str("\t\t(2, p_les2, h_les2s, h_les2, x_les2, t_les2),\n");
+        code.push_str("\t\t(3, p_les3, h_les3s, h_les3, x_les3, t_les3),\n");
+        code.push_str("\t\t(4, p_les4, h_les4s, h_les4, x_les4, t_les4),\n");
         code.push_str("\t];\n");
-        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex) in lhes_data.iter() {\n");
+        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex, t_ex) in lhes_data.iter() {\n");
         code.push_str("\t\tprintln!(\"    --- {}号低压抽汽参数 ---\", level);\n");
+        code.push_str("\t\tprintln!(\"      抽汽温度t-lesx(°C): {:.4}\", t_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽压力p-lesx(MPa): {:.4}\", p_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽干度X-lesx: {:.4}\", x_ex);\n");
         code.push_str("\t\tprintln!(\"      抽汽理想比焓h-lesxs(kJ/kg): {:.4}\", h_exs);\n");
@@ -1581,6 +1618,7 @@ impl Calculator {
         code
     }
 
+    // TODO: 重新封装python代码
     pub fn generate_calc_code_py(&mut self) -> String {
         let mut code = String::new();
         // 使用 self.params 来获取输入参数的实际值
@@ -1917,37 +1955,43 @@ impl Calculator {
         p_fw7i, h_fw7i, t_fw7i, p_fw7o, h_fw7o, t_fw7o, t_ro7k, h_ro7k, p_ro7k));
 
         code.push_str("\t# 高压缸抽汽\n");
-        let (p_hes6, h_hes6s, h_hes6, x_hes6) = self.calc_esx(p_ro6k, s_hi, h_hi, true);
+        let (p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6) =
+            self.calc_esx(t_fw6o, p_ro6k, s_hi, h_hi, true);
         code.push_str(&format!(
-            "\t(p_hes6, h_hes6s, h_hes6, x_hes6) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_hes6, h_hes6s, h_hes6, x_hes6
+            "\t(p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6
         ));
-        let (p_hes7, h_hes7s, h_hes7, x_hes7) = self.calc_esx(p_ro7k, s_hi, h_hi, true);
+        let (p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7) =
+            self.calc_esx(t_fw7o, p_ro7k, s_hi, h_hi, true);
         code.push_str(&format!(
-            "\t(p_hes7, h_hes7s, h_hes7, x_hes7) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_hes7, h_hes7s, h_hes7, x_hes7
+            "\t(p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7
         ));
 
         code.push_str("\t# 低压缸抽汽\n");
-        let (p_les1, h_les1s, h_les1, x_les1) = self.calc_esx(p_ro1k, s_li, h_li, false);
+        let (p_les1, h_les1s, h_les1, x_les1, t_les1) =
+            self.calc_esx(t_fw1o, p_ro1k, s_li, h_li, false);
         code.push_str(&format!(
-            "\t(p_les1, h_les1s, h_les1, x_les1) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_les1, h_les1s, h_les1, x_les1
+            "\t(p_les1, h_les1s, h_les1, x_les1, t_les1) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_les1, h_les1s, h_les1, x_les1, t_les1
         ));
-        let (p_les2, h_les2s, h_les2, x_les2) = self.calc_esx(p_ro2k, s_li, h_li, false);
+        let (p_les2, h_les2s, h_les2, x_les2, t_les2) =
+            self.calc_esx(t_fw2o, p_ro2k, s_li, h_li, false);
         code.push_str(&format!(
-            "\t(p_les2, h_les2s, h_les2, x_les2) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_les2, h_les2s, h_les2, x_les2
+            "\t(p_les2, h_les2s, h_les2, x_les2, t_les2) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_les2, h_les2s, h_les2, x_les2, t_les2
         ));
-        let (p_les3, h_les3s, h_les3, x_les3) = self.calc_esx(p_ro3k, s_li, h_li, false);
+        let (p_les3, h_les3s, h_les3, x_les3, t_les3) =
+            self.calc_esx(t_fw3o, p_ro3k, s_li, h_li, false);
         code.push_str(&format!(
-            "\t(p_les3, h_les3s, h_les3, x_les3) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_les3, h_les3s, h_les3, x_les3
+            "\t(p_les3, h_les3s, h_les3, x_les3, t_les3) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_les3, h_les3s, h_les3, x_les3, t_les3
         ));
-        let (p_les4, h_les4s, h_les4, x_les4) = self.calc_esx(p_ro4k, s_li, h_li, false);
+        let (p_les4, h_les4s, h_les4, x_les4, t_les4) =
+            self.calc_esx(t_fw4o, p_ro4k, s_li, h_li, false);
         code.push_str(&format!(
-            "\t(p_les4, h_les4s, h_les4, x_les4) = ({:.4}, {:.4}, {:.4}, {:.4})\n",
-            p_les4, h_les4s, h_les4, x_les4
+            "\t(p_les4, h_les4s, h_les4, x_les4, t_les1) = ({:.4}, {:.4}, {:.4}, {:.4}, {:4})\n",
+            p_les4, h_les4s, h_les4, x_les4, t_les4
         ));
 
         code.push_str("\t# 再热器抽汽\n");
@@ -2349,11 +2393,12 @@ impl Calculator {
         code.push_str("\tprint(f\"  46.1.高压缸进口蒸汽比熵s-hi: {s_hi:.4}\")\n");
         code.push_str("\tprint(f\"  46.2.高压缸进口蒸汽比焓h-hi(kJ/kg): {h_hi:.4}\")\n");
         code.push_str("\thhes_data = [\n");
-        code.push_str("\t\t(6, p_hes6, h_hes6s, h_hes6, x_hes6),\n");
-        code.push_str("\t\t(7, p_hes7, h_hes7s, h_hes7, x_hes7),\n");
+        code.push_str("\t\t(6, p_hes6, h_hes6s, h_hes6, x_hes6, t_hes6),\n");
+        code.push_str("\t\t(7, p_hes7, h_hes7s, h_hes7, x_hes7, t_hes7         ,\n");
         code.push_str("\t]\n");
-        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex) in hhes_data:\n");
+        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex, t_ex) in hhes_data:\n");
         code.push_str("\t\tprint(\"    --- {}号高压抽汽参数 ---\", level)\n");
+        code.push_str("\t\tprint(f\"      抽汽温度t-hesx(°C): {t_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽压力p-hesx(MPa): {p_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽干度X-hesx: {x_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽理想比焓h-hesxs(kJ/kg): {h_exs:.4}\")\n");
@@ -2364,13 +2409,14 @@ impl Calculator {
         code.push_str("\tprint(f\"  47.1.低压缸进口蒸汽比熵s-li: {s_li:.4}\")\n");
         code.push_str("\tprint(f\"  47.2.低压缸进口蒸汽比焓h-li(kJ/kg): {h_li:.4}\")\n");
         code.push_str("\tlhes_data = [\n");
-        code.push_str("\t\t(1, p_les1, h_les1s, h_les1, x_les1),\n");
-        code.push_str("\t\t(2, p_les2, h_les2s, h_les2, x_les2),\n");
-        code.push_str("\t\t(3, p_les3, h_les3s, h_les3, x_les3),\n");
-        code.push_str("\t\t(4, p_les4, h_les4s, h_les4, x_les4),\n");
+        code.push_str("\t\t(1, p_les1, h_les1s, h_les1, x_les1, t_les1),\n");
+        code.push_str("\t\t(2, p_les2, h_les2s, h_les2, x_les2, t_les2),\n");
+        code.push_str("\t\t(3, p_les3, h_les3s, h_les3, x_les3, t_les3),\n");
+        code.push_str("\t\t(4, p_les4, h_les4s, h_les4, x_les4, t_les4),\n");
         code.push_str("\t]\n");
-        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex) in lhes_data:\n");
+        code.push_str("\tfor (level, p_ex, h_exs, h_ex, x_ex, t_ex) in lhes_data:\n");
         code.push_str("\t\tprint(\"    --- {}号低压抽汽参数 ---\", level)\n");
+        code.push_str("\t\tprint(f\"      抽汽温度t-lesx(°C): {t_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽压力p-lesx(MPa): {p_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽干度X-lesx: {x_ex:.4}\")\n");
         code.push_str("\t\tprint(f\"      抽汽理想比焓h-lesxs(kJ/kg): {h_exs:.4}\")\n");

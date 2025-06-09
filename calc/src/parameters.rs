@@ -429,6 +429,8 @@ pub struct CalcFWParameters {
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct CalcHESParameters {
+    /// 抽汽温度T_hesx
+    pub t_hesx: f64,
     /// 抽汽压力p_hesx
     pub p_hesx: f64,
     /// 抽汽干度X_hesx

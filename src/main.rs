@@ -6,7 +6,6 @@ mod config;
 mod npp_tabs;
 
 use npp_tabs::{
-    calc_code::{CalcCodeTab, CalcCodeTabMessage},
     input::{InputTab, InputTabMessage},
     result::{ResultMessage, ResultTab},
 };
@@ -65,7 +64,6 @@ struct App {
     active_tab: TabId,
     input_tab: InputTab,
     result_tab: ResultTab,
-    calc_code_tab: CalcCodeTab,
     show_help_dialog: bool,
 }
 
@@ -81,7 +79,6 @@ enum Message {
     LoadDefaultParams,
     ClearInputParams,
     SaveResult,
-    SaveCalcCode,
     Calculate,
     ThemeSelect(Theme),
     OpenHelpDialog,
@@ -90,14 +87,12 @@ enum Message {
     TabSelected(TabId),
     InputTab(InputTabMessage),
     ResultTab(ResultMessage),
-    CalcCodeTab(CalcCodeTabMessage),
 }
 
 #[derive(Debug, Clone)]
 enum PendingAction {
     InputParams,
     Result,
-    CalcCode,
 }
 
 impl App {
@@ -120,7 +115,6 @@ impl App {
             active_tab: TabId::Input,
             input_tab: InputTab::default(),
             result_tab: ResultTab::default(),
-            calc_code_tab: CalcCodeTab::new(true),
             show_help_dialog: false,
         };
         let command = Task::batch(vec![iced::font::load(
@@ -209,16 +203,6 @@ impl App {
                                         }
                                     }
                                 }
-                                PendingAction::CalcCode => {
-                                    self.pending_action = None;
-                                    match self.caculator.save_code_to_file(&self.config.output_path)
-                                    {
-                                        Ok(_) => self.status = "保存计算代码成功".to_string(),
-                                        Err(error) => {
-                                            self.status = format!("保存计算代码失败{error}")
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
@@ -258,28 +242,10 @@ impl App {
                 }
                 Task::none()
             }
-            Message::SaveCalcCode => {
-                if self.config.output_path.is_empty() {
-                    self.pending_action = Some(PendingAction::CalcCode);
-                    return Task::perform(helpers::select_output_dir(), Message::SelectedOutputDir);
-                }
-                match self.caculator.save_code_to_file(&self.config.output_path) {
-                    Ok(_) => self.status = String::from("保存计算代码成功"),
-                    Err(error) => self.status = format!("保存计算代码失败{error}"),
-                }
-
-                Task::none()
-            }
             Message::Calculate => {
                 match self.caculator.calculate() {
                     Ok(_) => {
                         self.status = String::from("计算成功");
-                        self.calc_code_tab.update(CalcCodeTabMessage::UpdatePyCode(
-                            self.caculator.calc_code_py.clone(),
-                        ));
-                        self.calc_code_tab.update(CalcCodeTabMessage::UpdateRsCode(
-                            self.caculator.calc_code_rs.clone(),
-                        ));
                         self.result_tab.update(ResultMessage::UpdateResult(Box::new(
                             self.caculator.results.clone(),
                         )));
@@ -324,10 +290,6 @@ impl App {
                 self.result_tab.update(msg);
                 Task::none()
             }
-            Message::CalcCodeTab(msg) => {
-                self.calc_code_tab.update(msg);
-                Task::none()
-            }
         }
     }
 
@@ -346,7 +308,6 @@ impl App {
                     (labeled_button("加载默认参数", Message::LoadDefaultParams).width(Length::Fill))
                     (labeled_button("清空输入参数", Message::ClearInputParams).width(Length::Fill))
                     (labeled_button("保存计算结果", Message::SaveResult).width(Length::Fill))
-                    (labeled_button("保存计算代码", Message::SaveCalcCode).width(Length::Fill))
                     (labeled_button("开始计算", Message::Calculate).width(Length::Fill))
                 )).max_width(180.0)
             })
@@ -375,11 +336,6 @@ impl App {
                 TabId::Result,
                 self.result_tab.tab_label(),
                 self.result_tab.view(),
-            )
-            .push(
-                TabId::CalcCode,
-                self.calc_code_tab.tab_label(),
-                self.calc_code_tab.view(),
             )
             .height(Length::Fill)
             .set_active_tab(&self.active_tab)

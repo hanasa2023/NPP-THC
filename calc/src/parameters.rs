@@ -425,6 +425,8 @@ pub struct CalcFWParameters {
     pub t_roxk: f64,
     /// 汽侧疏水比焓h_roxk
     pub h_roxk: f64,
+    /// 汽测疏水压力p_roxk
+    pub p_roxk: f64,
 }
 
 #[derive(Debug, Clone, Default, Serialize)]

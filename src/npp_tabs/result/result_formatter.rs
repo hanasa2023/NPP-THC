@@ -45,6 +45,10 @@ fn format_fw_params(params: &[CalcFWParameters], title: &str, markdown: &mut Str
                 "    - 汽侧疏水比焓 (h_roxk): {}\n\n",
                 fmt_f64(p.h_roxk)
             ));
+            markdown.push_str(&format!(
+                "    - 汽侧疏水压力 (p_roxk): {}\n\n",
+                fmt_f64(p.p_roxk)
+            ));
         }
     }
 }

@@ -416,6 +416,7 @@ impl Calculator {
                     t_fwxo: t_fw1o,
                     t_roxk: t_ro1k,
                     h_roxk: h_ro1k,
+                    p_roxk: p_ro1k,
                 },
                 CalcFWParameters {
                     p_fwxi: p_fw2i,
@@ -426,6 +427,7 @@ impl Calculator {
                     t_fwxo: t_fw2o,
                     t_roxk: t_ro2k,
                     h_roxk: h_ro2k,
+                    p_roxk: p_ro2k,
                 },
                 CalcFWParameters {
                     p_fwxi: p_fw3i,
@@ -436,6 +438,7 @@ impl Calculator {
                     t_fwxo: t_fw3o,
                     t_roxk: t_ro3k,
                     h_roxk: h_ro3k,
+                    p_roxk: p_ro3k,
                 },
                 CalcFWParameters {
                     p_fwxi: p_fw4i,
@@ -446,6 +449,7 @@ impl Calculator {
                     t_fwxo: t_fw4o,
                     t_roxk: t_ro4k,
                     h_roxk: h_ro4k,
+                    p_roxk: p_ro4k,
                 },
             ],
             h_deai,
@@ -465,6 +469,7 @@ impl Calculator {
                     t_fwxo: t_fw6o,
                     t_roxk: t_ro6k,
                     h_roxk: h_ro6k,
+                    p_roxk: p_ro6k,
                 },
                 CalcFWParameters {
                     p_fwxi: p_fw7i,
@@ -475,6 +480,7 @@ impl Calculator {
                     t_fwxo: t_fw7o,
                     t_roxk: t_ro7k,
                     h_roxk: h_ro7k,
+                    p_roxk: p_ro7k,
                 },
             ],
             s_hi1: s_hi,
